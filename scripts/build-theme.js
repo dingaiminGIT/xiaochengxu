@@ -14,6 +14,7 @@ fs.writeFileSync(
   `// Generated from theme/tokens.json\nexport default ${JSON.stringify(tokens, null, 2)};\n`,
 );
 const icons = {
+  home: '<path d="m3 10 9-7 9 7M5 9v11h5v-7h4v7h5V9"/>',
   report: '<ellipse cx="4.5" cy="9" rx="2" ry="2.5" transform="rotate(-25 4.5 9)"/><ellipse cx="9" cy="4.8" rx="2" ry="2.6" transform="rotate(-10 9 4.8)"/><ellipse cx="15" cy="4.8" rx="2" ry="2.6" transform="rotate(10 15 4.8)"/><ellipse cx="19.5" cy="9" rx="2" ry="2.5" transform="rotate(25 19.5 9)"/><path d="M12 10c-2.7 0-3.5 2.2-5.3 4.2C5.2 15.9 4.5 17 5 18.8c.6 2.2 2.7 2.6 4.6 2 1.7-.6 3.1-.6 4.8 0 1.9.6 4 .2 4.6-2 .5-1.8-.2-2.9-1.7-4.6C15.5 12.2 14.7 10 12 10Z"/><path d="M12 13v3"/><circle cx="12" cy="18" r=".65" fill="COLOR" stroke="none"/>',
   heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',
   'heart-filled': '<path fill="COLOR" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"/>',

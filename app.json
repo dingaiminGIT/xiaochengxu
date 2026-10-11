@@ -84,7 +84,7 @@
     "list": [
       {
         "pagePath": "pages/home/index",
-        "text": "状态"
+        "text": "首页"
       },
       {
         "pagePath": "pages/assistant/index",

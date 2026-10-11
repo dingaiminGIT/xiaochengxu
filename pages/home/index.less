@@ -409,6 +409,16 @@
   background: @colors-surfaceMuted;
 }
 .home-calendar-days .calendar-day.selected {
+  background: @colors-primarySoft;
+  color: @colors-text;
+}
+.home-calendar-days .calendar-day.selected.no-reminder {
+  background: @colors-surfaceMuted;
+}
+.home-calendar-days .calendar-day.selected .calendar-week {
+  color: @colors-muted;
+}
+.home-calendar-days .calendar-day.selected .calendar-dot.has-reminder {
   background: @colors-primary;
 }
 .calendar-summary > text {
@@ -435,21 +445,29 @@
   padding: 8rpx 0;
   border-radius: 8rpx;
 }
-.home-calendar-days .calendar-day.selected,
-.home-calendar-days .calendar-day.today {
+.home-calendar-days .calendar-day.today-reminder {
   border-color: @colors-primary;
   background: @colors-surface;
 }
-.home-calendar-days .calendar-day.selected .calendar-day-inner,
-.home-calendar-days .calendar-day.today .calendar-day-inner {
+.home-calendar-days .calendar-day.today-reminder .calendar-day-inner {
   background: @colors-primary;
   color: @colors-inverse;
 }
-.home-calendar-days .calendar-day.selected .calendar-week,
-.home-calendar-days .calendar-day.today .calendar-week {
+.home-calendar-days .calendar-day.today-reminder .calendar-week {
   color: @colors-inverse;
 }
-.home-calendar-days .calendar-day.selected .calendar-dot.has-reminder,
-.home-calendar-days .calendar-day.today .calendar-dot.has-reminder {
+.home-calendar-days .calendar-day.today-reminder .calendar-dot.has-reminder {
   background: @colors-accent;
+}
+
+// Selection stays subtle; the double purple tile belongs only to today with reminders.
+.home-calendar-days .calendar-day.selected:not(.today-reminder) {
+  border-color: @colors-primaryMedium;
+}
+.home-calendar-days .calendar-day.today.no-reminder .calendar-number {
+  color: @colors-primary;
+}
+
+.home-calendar-days .calendar-day.today.no-reminder {
+  border-color: @colors-primary;
 }

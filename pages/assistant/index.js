@@ -309,8 +309,11 @@ Page({
   },
 
   onIngredientFound() {
+    if (this.data.sending) return;
+    this.setData({ composerFocused: false });
+    wx.hideKeyboard();
     wx.showActionSheet({
-      itemList: ['拍照', '从相册选择'],
+      itemList: ['拍摄', '从相册选择'],
       success: (res) => {
         const sourceType = res.tapIndex === 0 ? ['camera'] : ['album'];
         this.pickIngredientImages(sourceType);
@@ -344,6 +347,11 @@ Page({
           composerImages: next,
           inputMessage: this.data.inputMessage || '请帮我分析配料表',
         });
+      },
+      fail: (error) => {
+        if (!/cancel/i.test(error.errMsg || '')) {
+          wx.showToast({ title: '无法获取图片，请检查相机或相册权限后重试', icon: 'none' });
+        }
       },
     });
   },

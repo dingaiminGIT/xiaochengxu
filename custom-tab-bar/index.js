@@ -4,7 +4,7 @@ Component({
     modalHidden: false,
     value: 'home',
     list: [
-      { value: 'home', label: '状态', icon: 'activity' },
+      { value: 'home', label: '首页', icon: 'home' },
       { value: 'assistant', label: '管家', icon: 'ai-search' },
       { value: 'my', label: '宠物', icon: 'cat' },
     ],
