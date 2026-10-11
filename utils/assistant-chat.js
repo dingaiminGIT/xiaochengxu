@@ -36,10 +36,70 @@ export function mapChatMessage(message) {
     riskReasons: (((message.result || {}).risk || {}).reasons || []).join('、'),
     limitedInfo: !!(message.result && message.result.limited_info),
     candidates: (message.result && message.result.food_candidates) || [],
+    actions: ((message.result && message.result.actions) || []).filter((a) =>
+      ['flow_handoff', 'diet_history', 'medical_record'].includes(a.type),
+    ),
+    recommendationNote: ((message.result || {}).recommendation || {}).note || '',
   };
 }
 
 export const chatMethods = {
+  useGuardianAction(event) {
+    if (this.data.sending) return;
+    const { id, index } = event.currentTarget.dataset;
+    const message = this.data.chatMessages.find((m) => m.id === id);
+    const action = message && message.actions[Number(index)];
+    if (!action || !this.data.boundPet) return;
+    if (action.type === 'flow_handoff' && action.target_flow === 'food_switch') {
+      this.sendCloudMessage({ message: '帮我推荐一款主粮' }, '帮我推荐一款主粮');
+    } else if (action.type === 'diet_history') {
+      wx.navigateTo({
+        url: '/pages/pet-space/food-list?mode=history&petId=' + encodeURIComponent(this.data.boundPet.id),
+      });
+    } else if (action.type === 'medical_record') {
+      wx.navigateTo({ url: '/pages/pet-space/pet-edit?id=' + encodeURIComponent(this.data.boundPet.id) });
+    }
+  },
+  confirmCandidateDiet(event) {
+    if (this.data.sending || this._savingCandidate || !requireSession()) return;
+    const { id, index } = event.currentTarget.dataset;
+    const message = this.data.chatMessages.find((m) => m.id === id);
+    const candidate = message && message.candidates[Number(index)];
+    const pet = this.data.boundPet;
+    if (!candidate || !candidate.formula_id || !candidate.product_id || !pet) return;
+    const account = accountKey('assistant');
+    wx.showModal({
+      title: '确认已经开始吃这款粮？',
+      content:
+        candidate.brand + ' ' + candidate.product_name + '。确认后更新当前口粮，并保存原口粮历史；尚在考虑时请取消。',
+      confirmText: '已开始吃',
+      success: async (r) => {
+        if (
+          !r.confirm ||
+          account !== accountKey('assistant') ||
+          this._savingCandidate ||
+          !this.data.boundPet ||
+          this.data.boundPet.id !== pet.id
+        )
+          return;
+        this._savingCandidate = true;
+        this.setData({ sending: true });
+        try {
+          await api('/cat-profiles/' + encodeURIComponent(pet.id), 'PATCH', {
+            diet: { product_id: candidate.product_id, formula_id: candidate.formula_id },
+          });
+          if (account !== accountKey('assistant')) return;
+          await this.refreshChatPet();
+          wx.showToast({ title: '已更新当前口粮', icon: 'success' });
+        } catch (e) {
+          wx.showToast({ title: errorText(e), icon: 'none' });
+        } finally {
+          this._savingCandidate = false;
+          if (account === accountKey('assistant')) this.setData({ sending: false });
+        }
+      },
+    });
+  },
   async refreshChatPet(strict = false) {
     if (!this.data.boundPet) this.setData({ boundPet: loadStore().pet });
     if (!hasSession()) {
