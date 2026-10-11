@@ -78,15 +78,35 @@ export async function submitFood({ brand, product, remark = '', images = [] }) {
   );
 }
 export function submissionView(item) {
+  const status =
+    item.recognition_status === 'success' && !(item.ingredient_composition || '').trim()
+      ? 'unrecognized'
+      : item.recognition_status;
+  const messages = {
+    pending: '照片已收到，正在排队识别，请稍后刷新。',
+    processing: '正在识别配料表，请稍后刷新查看结果。',
+    unrecognized: '没有读到完整配料表，请拍包装背面的配料表近照，让文字完整、清晰、不反光。',
+    needs_review: '识别内容尚需核对，请重新拍摄清晰完整的配料表和营养成分保证值。',
+    failed: '识别服务暂时失败，请稍后重新上传。',
+    success: '配料表已识别，可交给管家分析；产品收录还需审核。',
+  };
   return {
     ...item,
+    recognition_status: status,
+    recognitionMessage: item.recognition_message || messages[status] || '请刷新查看识别状态。',
+    canAnalyze: item.status !== 'cancelled' && status === 'success' && !!(item.ingredient_composition || '').trim(),
+    canReupload: item.status !== 'cancelled' && ['unrecognized', 'needs_review', 'failed'].includes(status),
     title: `${item.claimed_brand || ''} ${item.claimed_product_name || ''}`.trim(),
     statusText:
-      item.status_label ||
-      (['pending', 'processing'].includes(item.recognition_status)
+      (status !== item.recognition_status ? '未识别到配料表' : item.status_label) ||
+      (['pending', 'processing'].includes(status)
         ? '识别中'
-        : item.recognition_status === 'failed'
-        ? '识别失败'
+        : status === 'failed'
+        ? '识别服务暂时失败'
+        : status === 'unrecognized'
+        ? '未识别到配料表'
+        : status === 'needs_review'
+        ? '识别结果待核对'
         : '等待审核'),
     canCancel:
       item.status !== 'cancelled' &&

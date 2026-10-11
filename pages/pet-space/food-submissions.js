@@ -73,6 +73,16 @@ Page({
   create() {
     this.setData({ creating: true, selected: null, error: '' });
   },
+  reupload() {
+    const item = this.data.selected;
+    if (!item || !item.canReupload || this.data.saving) return;
+    this.setData({
+      creating: true,
+      selected: null,
+      error: '',
+      form: { brand: item.claimed_brand, product: item.claimed_product_name, remark: item.remark || '', images: [] },
+    });
+  },
   chooseImages() {
     if (this.data.saving || this.data.form.images.length >= 3) return;
     wx.chooseMedia({
@@ -161,7 +171,7 @@ Page({
   },
   useInChat() {
     const item = this.data.selected;
-    if (!item || item.status === 'cancelled' || item.recognition_status !== 'success') return;
+    if (!item || !item.canAnalyze) return;
     this.getOpenerEventChannel().emit('foodSelected', item);
     wx.navigateBack();
   },

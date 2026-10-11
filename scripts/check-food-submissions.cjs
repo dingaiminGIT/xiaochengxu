@@ -62,6 +62,25 @@ vm.runInContext(source + '\nthis.methods = { multipartFood, submitFood, submissi
   reply = { statusCode: 409, data: { ok: false, error: '状态冲突' } };
   await assert.rejects(submitFood({ brand: 'b', product: 'p', images: ['/tmp/a'] }), /状态冲突/);
   assert.equal(submissionView({ recognition_status: 'processing' }).statusText, '识别中');
+  const empty = submissionView({ recognition_status: 'success', ingredient_composition: ' ', status: 'active' });
+  assert.equal(empty.recognition_status, 'unrecognized');
+  assert.equal(empty.canAnalyze, false);
+  assert.equal(empty.canReupload, true);
+  assert.match(empty.recognitionMessage, /背面/);
+  for (const status of ['unrecognized', 'needs_review', 'failed']) {
+    const item = submissionView({ recognition_status: status, status: 'active' });
+    assert.equal(item.canAnalyze, false);
+    assert.equal(item.canReupload, true);
+    assert.ok(item.recognitionMessage);
+  }
+  assert.equal(
+    submissionView({ recognition_status: 'success', ingredient_composition: '鸡肉', status: 'active' }).canAnalyze,
+    true,
+  );
+  assert.equal(
+    submissionView({ recognition_status: 'success', ingredient_composition: '鸡肉', status: 'cancelled' }).canAnalyze,
+    false,
+  );
   assert.equal(submissionView({ review_status: 'approved' }).canCancel, false);
   assert.equal(submissionView({ publish_status: 'published' }).canCancel, false);
   assert.equal(submissionView({ status: 'cancelled' }).canCancel, false);
