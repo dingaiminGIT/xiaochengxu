@@ -1,8 +1,10 @@
 import { fetchFoodCatalog, mapCatalogFood } from '../../utils/food-catalog';
-import { errorText } from '../../api/miniprogram';
+import { api, requireSession, mapPet, errorText } from '../../api/miniprogram';
+
+import { accountKey, cachePetList, currentPet } from '../../utils/pet-store';
 
 Page({
-  data: { query: '', items: [], loading: false, error: '', selected: null },
+  data: { query: '', items: [], loading: false, error: '', selected: null, savingDiet: false, petName: '' },
   onLoad() {
     this.search();
   },
@@ -23,15 +25,51 @@ Page({
     }
   },
   openItem(e) {
+    this.setData({ petName: currentPet()?.name || '' });
     this.setData({ selected: this.data.items.find((p) => p.id === e.currentTarget.dataset.id) || null });
   },
   closeDetail() {
+    if (this.data.savingDiet) return;
     this.setData({ selected: null });
+  },
+  async setCurrentDiet() {
+    if (this.data.savingDiet || !this.data.selected || !requireSession()) return;
+    const food = this.data.selected;
+    if (!food.brand || !food.name) {
+      wx.showToast({ title: '食品品牌或名称不完整，暂无法设置', icon: 'none' });
+      return;
+    }
+    const account = accountKey('hunting');
+    this.setData({ savingDiet: true });
+    try {
+      const result = await api('/cat-profiles?limit=100');
+      if (this._disposed || account !== accountKey('hunting')) return;
+      const store = cachePetList((result.items || []).map(mapPet));
+      const pet = currentPet(store);
+      if (!pet) {
+        wx.showToast({ title: '请先添加爱宠', icon: 'none' });
+        wx.navigateTo({ url: '/pages/pet-space/pet-edit' });
+        return;
+      }
+      this.setData({ petName: pet.name });
+      const diet = { brand: food.brand, product: food.name };
+      await api('/cat-profiles/' + encodeURIComponent(pet.id), 'PATCH', { diet });
+      if (this._disposed || account !== accountKey('hunting')) return;
+      cachePetList(store.pets.map((p) => p.id === pet.id
+        ? { ...p, diet, food_brand: diet.brand, food_product: diet.product } : p));
+      this.setData({ selected: null });
+      wx.showToast({ title: '已设置为当前口粮', icon: 'success' });
+    } catch (e) {
+      if (!this._disposed && account === accountKey('hunting')) wx.showToast({ title: errorText(e), icon: 'none' });
+    } finally {
+      if (!this._disposed) this.setData({ savingDiet: false });
+    }
   },
   contribute() {
     wx.navigateTo({ url: '/pages/pet-space/food-submissions?create=1' });
   },
   onUnload() {
+    this._disposed = true;
     this._request = (this._request || 0) + 1;
   },
 });

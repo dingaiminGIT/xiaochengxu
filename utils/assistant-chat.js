@@ -216,7 +216,7 @@ export const chatMethods = {
     }
   },
   async openFoodSubmission() {
-    if (!requireSession()) return;
+    if (this.data.sending || !requireSession()) return;
     if (this._openingFoodSubmission) return;
     this._openingFoodSubmission = true;
     await this.refreshChatPet();
