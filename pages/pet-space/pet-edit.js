@@ -1,4 +1,4 @@
-import { syncBirthdayReminder } from '../../utils/reminders';
+import { syncCloudBirthday } from '../../utils/reminder-api';
 import { birthdayAge, profileForm, profilePayload } from '../../utils/pet-profile-form';
 import { requireSession, api, login, hasSession, mapPet, errorText, recognizePetImage } from '../../api/miniprogram';
 import { loadStore, saveStore, cachePetList, accountKey } from '../../utils/pet-store';
@@ -235,10 +235,7 @@ Page({
       cachePetList([...(store.pets || (store.pet ? [store.pet] : [])).filter((p) => p.id !== saved.id), saved]);
       saveStore({ pet: saved, selectedPetId: saved.id });
       try {
-        syncBirthdayReminder({
-          ...saved,
-          birthday: payload.birthday !== undefined ? payload.birthday : saved.birthday,
-        });
+        await syncCloudBirthday(saved.id);
       } catch (e) {
         wx.showModal({ title: '档案已保存', content: '生日提醒未能保存，请在我的提醒中手动添加。', showCancel: false });
       }

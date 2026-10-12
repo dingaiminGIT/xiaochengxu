@@ -1,5 +1,6 @@
 import { calendarDays, remindersOnDate, shiftDate, birthdayCountdown } from '../../utils/reminder-calendar';
 import { localDate, listReminders } from '../../utils/reminders';
+import { refreshCloudReminders } from '../../utils/reminder-api';
 import { getReminderPrompt } from '../../utils/reminder-prompts';
 import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
 import { categories, getFeedPosts, fetchPosts } from '../../utils/community';
@@ -34,6 +35,8 @@ Page({
     cachePetList(store.pets || (store.pet ? [store.pet] : []));
     this.refreshData();
     this.syncPets();
+    const reminderAccount = accountKey('reminders');
+    refreshCloudReminders().then(() => { if (reminderAccount === accountKey('reminders')) this.refreshData(); }).catch(() => { /* Cached reminders stay visible until the next refresh. */ });
     // 从发帖返回时刷新；热更新/空列表时补拉，避免样式区空白
     if (this._reloadFeedOnShow || (!this.data.posts.length && !this.data.loading)) {
       this._reloadFeedOnShow = false;

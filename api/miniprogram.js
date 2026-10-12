@@ -8,6 +8,7 @@ export function api(path, method = 'GET', data = {}) {
     requireSession();
     return Promise.reject(new Error('请先登录／注册后继续'));
   }
+  const requestToken = wx.getStorageSync('miniprogram_token') || '';
   return new Promise((resolve, reject) =>
     wx.request({
       url: `${origin}/api/miniprogram${path}`,
@@ -16,10 +17,10 @@ export function api(path, method = 'GET', data = {}) {
       timeout: 30000,
       header: {
         'content-type': 'application/json',
-        Authorization: `Bearer ${wx.getStorageSync('miniprogram_token') || ''}`,
+        Authorization: `Bearer ${requestToken}`,
       },
       success(res) {
-        if (res.statusCode === 401) wx.removeStorageSync('miniprogram_token');
+        if (res.statusCode === 401 && wx.getStorageSync('miniprogram_token') === requestToken) wx.removeStorageSync('miniprogram_token');
         const body = res.data && typeof res.data === 'object' ? res.data : {};
         if (method === 'DELETE' && res.statusCode === 204) {
           resolve({ ok: true });
