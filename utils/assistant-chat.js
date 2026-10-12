@@ -285,7 +285,7 @@ export const chatMethods = {
         'POST',
         {
           ...payload,
-          client_context: { recent_daily_records: recentDailyRecords(pet.id) },
+          client_context: { recent_daily_records: recentDailyRecords(pet.id), capabilities: { cloud_reminders_v1: true } },
         },
       );
       const response = await this._sendRequest;

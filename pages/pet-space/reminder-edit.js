@@ -2,11 +2,10 @@ import {
   reminderTypes,
   repeatOptions,
   listReminders,
-  saveReminder,
-  deleteReminder,
   localDate,
   localTime,
 } from '../../utils/reminders';
+import { refreshCloudReminders, saveCloudReminder, deleteCloudReminder } from '../../utils/reminder-api';
 import { loadStore, currentPet, accountKey, cachePetList } from '../../utils/pet-store';
 import { api, hasSession, mapPet } from '../../api/miniprogram';
 Page({
@@ -30,6 +29,7 @@ Page({
   },
   onLoad(q) {
     this._account = accountKey('reminders');
+    this._requestKey = `reminder-${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const item = q.id ? listReminders().find((r) => r.id === q.id) : null;
     if (q.id && !item) {
       this.setData({ missing: true });
@@ -40,6 +40,7 @@ Page({
       pet = currentPet();
     this.setData({
       id: item?.id || '',
+      revision: item?.revision,
       type: type.id,
       title: item?.title || (type.id === 'custom' ? '' : type.name),
       icon: type.icon,
@@ -55,6 +56,9 @@ Page({
       pets,
     });
     this.loadPets();
+  },
+  onShow() {
+    refreshCloudReminders().catch(() => { /* Cached edit remains available; writes report failures. */ });
   },
   async loadPets() {
     if (!hasSession()) return;
@@ -87,7 +91,7 @@ Page({
     const pet = this.data.pets.find((p) => p.id === e.currentTarget.dataset.id);
     this.setData({ petId: pet?.id || '', petName: pet?.name || '', petPicker: false });
   },
-  save() {
+  async save() {
     if (this.data.saving) return;
     if (this._account !== accountKey('reminders')) {
       wx.showToast({ title: '账号已变化，请重新打开', icon: 'none' });
@@ -95,7 +99,8 @@ Page({
     }
     this.setData({ saving: true });
     try {
-      saveReminder({ ...this.data, repeat: repeatOptions[this.data.repeatIndex].id });
+      await saveCloudReminder({ ...this.data, repeat: repeatOptions[this.data.repeatIndex].id }, this._requestKey);
+      if (this._disposed || this._account !== accountKey('reminders')) return;
       wx.showToast({ title: '提醒已保存' });
       wx.navigateBack();
     } catch (e) {
@@ -109,10 +114,11 @@ Page({
       title: '删除提醒',
       content: '确定删除这条提醒吗？已完成的历史记录会保留。',
       confirmText: '删除',
-      success: (r) => {
+      success: async (r) => {
         if (!r.confirm || this._account !== accountKey('reminders')) return;
         try {
-          deleteReminder(this.data.id);
+          await deleteCloudReminder(this.data.id);
+          if (this._disposed || this._account !== accountKey('reminders')) return;
           wx.navigateBack();
         } catch (e) {
           wx.showToast({ title: '删除失败，请重试', icon: 'none' });
