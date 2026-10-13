@@ -40,7 +40,7 @@
         <view wx:else class="food-mine-placeholder"><p-icon name="food" size="44" /></view>
         <view class="food-current-check"><p-icon name="check" tone="inverse" size="22" /></view><text class="food-mine-name">{{item.name}}</text><text class="food-mine-status">{{item.note}}</text>
       </button>
-      <view class="food-mine-card food-mine-entry"><button class="entry-action" bindtap="editMine" disabled="{{mineLoading || mineError}}"><p-icon name="plus" size="26" /><text>添加口粮</text></button><button class="entry-action" bindtap="openDietHistory" disabled="{{mineLoading || mineError}}"><p-icon name="history" size="26" /><text>历史口粮</text></button></view>
+      <view class="food-mine-card food-mine-entry"><button class="entry-add" bindtap="openHunting" disabled="{{mineLoading || mineError}}" aria-label="添加口粮"><p-icon name="plus" size="52" /></button></view>
     </view></scroll-view>
     <block wx:else>    <button wx:for="{{mine}}" wx:key="id" class="mine-card" data-id="{{item.id}}" bindtap="editMine">
       <p-image wx:if="{{kind === 'food' && item.image}}" image-class="mine-photo" src="{{item.image}}" /><view wx:else class="mine-icon"><p-icon name="{{kind === 'toys' ? 'toy' : 'food'}}" /></view>

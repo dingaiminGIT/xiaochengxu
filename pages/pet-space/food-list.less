@@ -24,3 +24,23 @@
   margin-bottom: @space-xs;
   word-break: break-all;
 }
+
+.diet-tabs {
+  display: flex;
+  gap: @space-sm;
+  margin-bottom: @space-roomy;
+}
+.diet-tab {
+  margin: 0;
+  padding: @space-xs @space-sm;
+  line-height: 1.5;
+  font-size: @type-small;
+  background: transparent;
+  color: @colors-secondary;
+  border-radius: @radius-small;
+}
+.diet-tab.active {
+  background: @colors-primarySoft;
+  color: @colors-primary;
+  font-weight: @weight-semibold;
+}

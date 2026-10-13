@@ -20,6 +20,12 @@ Page({
     this.petId = q.petId || '';
     this.setData({ history: q.mode === 'history' });
   },
+  switchMode(e) {
+    const history = e.currentTarget.dataset.mode === 'history';
+    if (this.data.saving || history === this.data.history) return;
+    this.setData({ history, editing: false, items: [], legacyItems: [], associationNote: '', hasMore: false });
+    this.load();
+  },
   onShow() {
     this._active = true;
     this.load();
