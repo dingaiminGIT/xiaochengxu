@@ -1,3 +1,4 @@
+import { previewIngredientExample } from '../../utils/preview-ingredient-example';
 import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
 import { chatMethods } from '../../utils/assistant-chat';
 import { accountKey } from '../../utils/pet-store';
@@ -302,10 +303,7 @@ Page({
   },
 
   previewIngredientExample() {
-    wx.previewImage({
-      current: '/static/assistant/ingredient-example.jpg',
-      urls: ['/static/assistant/ingredient-example.jpg'],
-    });
+    previewIngredientExample();
   },
 
   onIngredientFound() {

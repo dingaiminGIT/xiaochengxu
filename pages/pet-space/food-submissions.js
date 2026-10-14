@@ -1,3 +1,4 @@
+import { previewIngredientExample } from '../../utils/preview-ingredient-example';
 import { requireSession, hasSession, api, login, errorText, downloadPetImage } from '../../api/miniprogram';
 import { accountKey } from '../../utils/pet-store';
 import { submitFood, submissionView } from '../../utils/food-submission';
@@ -82,6 +83,9 @@ Page({
       error: '',
       form: { brand: item.claimed_brand, product: item.claimed_product_name, remark: item.remark || '', images: [] },
     });
+  },
+  previewIngredientExample() {
+    previewIngredientExample('pages/pet-space/static/ingredient-example.jpg');
   },
   chooseImages() {
     if (this.data.saving || this.data.form.images.length >= 3) return;

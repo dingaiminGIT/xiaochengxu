@@ -1,3 +1,4 @@
+import { previewIngredientExample } from '../../utils/preview-ingredient-example';
 import { rememberDiet } from '../../utils/diet-history';
 import { fetchFoodCatalog } from '../../utils/food-catalog';
 import { requireSession, api, mediaUrl, errorText, hasSession, mapPet, login } from '../../api/miniprogram';
@@ -458,10 +459,7 @@ Page({
   },
 
   previewIngredientExample() {
-    wx.previewImage({
-      current: '/pages/pet-space/static/ingredient-example.jpg',
-      urls: ['/pages/pet-space/static/ingredient-example.jpg'],
-    });
+    previewIngredientExample('pages/pet-space/static/ingredient-example.jpg');
   },
 
   onIngredientFound() {

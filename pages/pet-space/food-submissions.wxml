@@ -4,7 +4,7 @@
 <text class="caption">填写品牌与具体产品名。重点拍包装背面的完整配料表，可另拍一张营养成分保证值；文字清晰、不反光，不要只拍包装正面。</text>
 <view class="form-field"><text>品牌</text><input value="{{form.brand}}" data-key="brand" bindinput="input" maxlength="255" disabled="{{saving}}" placeholder="如：皇家" /></view>
 <view class="form-field"><text>产品名称</text><input value="{{form.product}}" data-key="product" bindinput="input" maxlength="512" disabled="{{saving}}" placeholder="填写具体产品或系列" /></view>
-<view class="photos"><view wx:for="{{form.images}}" wx:key="*this" class="photo-wrap"><p-image image-class="photo" src="{{item}}" data-url="{{item}}" bindtap="preview" /><button class="remove" data-index="{{index}}" bindtap="removeImage" disabled="{{saving}}">×</button></view><button wx:if="{{form.images.length < 3}}" class="add-photo" bindtap="chooseImages" disabled="{{saving}}"><p-icon name="plus" /><text>配料表近照</text></button></view>
+<view class="photos"><view wx:for="{{form.images}}" wx:key="*this" class="photo-wrap"><p-image image-class="photo" src="{{item}}" data-url="{{item}}" bindtap="preview" /><button class="remove" data-index="{{index}}" bindtap="removeImage" disabled="{{saving}}">×</button></view><button wx:if="{{form.images.length < 3}}" class="add-photo" bindtap="chooseImages" disabled="{{saving}}"><p-icon name="plus" /><text>配料表近照</text></button><button class="ingredient-example" bindtap="previewIngredientExample" aria-label="查看配料表参考图"><image src="/pages/pet-space/static/ingredient-example.jpg" mode="aspectFill" /><text>查看参考图</text></button></view>
 <text class="caption">1～3 张，单张不超过 10MB</text>
 <view class="form-field"><text>备注（选填）</text><textarea value="{{form.remark}}" data-key="remark" bindinput="input" maxlength="1000" disabled="{{saving}}" placeholder="补充包装信息…" /></view>
 
