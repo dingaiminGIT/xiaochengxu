@@ -3,6 +3,9 @@ import { api, mediaUrl } from '../api/miniprogram';
 export function mapCatalogFood(p) {
   return {
     id: p.catalog_key || p.id,
+    catalog_key: p.catalog_key || p.id || '',
+    product_id: p.product_id == null ? null : p.product_id,
+    formula_id: p.formula_id == null ? null : p.formula_id,
     name: p.product_name || p.name || '',
     brand: p.brand || '',
     displayText: p.display_text || p.displayText || '',

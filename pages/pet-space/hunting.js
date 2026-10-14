@@ -39,6 +39,10 @@ Page({
       wx.showToast({ title: '食品品牌或名称不完整，暂无法设置', icon: 'none' });
       return;
     }
+    if (food.product_id == null || food.formula_id == null) {
+      wx.showToast({ title: '该产品缺少标准产品或配方编号，暂无法设置', icon: 'none' });
+      return;
+    }
     const account = accountKey('hunting');
     this.setData({ savingDiet: true });
     try {
@@ -52,11 +56,11 @@ Page({
         return;
       }
       this.setData({ petName: pet.name });
-      const diet = { brand: food.brand, product: food.name };
-      await api('/cat-profiles/' + encodeURIComponent(pet.id), 'PATCH', { diet });
+      const diet = { product_id: food.product_id, formula_id: food.formula_id };
+      const saved = await api('/cat-profiles/' + encodeURIComponent(pet.id), 'PATCH', { diet });
       if (this._disposed || account !== accountKey('hunting')) return;
-      cachePetList(store.pets.map((p) => p.id === pet.id
-        ? { ...p, diet, food_brand: diet.brand, food_product: diet.product } : p));
+      const updated = mapPet(saved.item);
+      cachePetList(store.pets.map((p) => (p.id === pet.id ? updated : p)));
       this.setData({ selected: null });
       wx.showToast({ title: '已设置为当前口粮', icon: 'success' });
     } catch (e) {
