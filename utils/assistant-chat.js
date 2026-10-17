@@ -22,11 +22,34 @@ function recentDailyRecords(petId) {
     }));
 }
 
+export function messageBlocks(message) {
+  if (message.role !== 'assistant') return [];
+  const markers = { positive: '✅', negative: '❌', caution: '❗', body: '' };
+  const saved = (message.result || {}).display_blocks;
+  if (Array.isArray(saved) && saved.length) {
+    return saved.map((block) => ({
+      marker: markers[block.kind] || '',
+      segments: (Array.isArray(block.segments) ? block.segments : []).map((s) => ({
+        text: String(s.text || ''), strong: s.strong === true,
+      })),
+    }));
+  }
+  return String(message.content || message.reply || '').split(/\n+/).filter((s) => s.trim()).map((line) => {
+    const marker = line.match(/^(✅|❌|❗)\s*/);
+    const text = marker ? line.slice(marker[0].length) : line;
+    return { marker: marker ? marker[1] : '', segments: text.split(/(\*\*[^*\n]+\*\*)/).filter(Boolean).map((part) => {
+      const strong = part.startsWith('**') && part.endsWith('**') && part.length > 4;
+      return { text: strong ? part.slice(2, -2) : part, strong };
+    }) };
+  });
+}
+
 export function mapChatMessage(message) {
   const interaction = message.interaction || {};
   return {
     ...message,
     text: message.content || message.reply || '',
+    blocks: messageBlocks(message),
     interaction: {
       ...interaction,
       options: (interaction.options || []).map((option) => ({ ...option, selected: false })),
