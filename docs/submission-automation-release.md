@@ -10,7 +10,7 @@
 
 ## 精确源码基线
 
-本 PR 从 `yougurt-cui/xiaochengxu` 的 `origin/dev@776d85b` 开发，目标分支也是 **dev**。不是从微信正式包或体验包反向还原的源码。`main` 仍是初始工程，不是本项目当前前端集成分支。
+本 PR 最初从 `yougurt-cui/xiaochengxu` 的 `dev@776d85b` 开发，目标分支也是 **dev**。2026-10-17 已接入 Kevin 提供的 `codex/resolve-pr-3@39d3ef3` 冲突解决提交，将最新 `dev@4d8142c` 合入；保留新版管家欢迎页、底部导航及本次通知与回复展示功能。不是从微信正式包或体验包反向还原的源码。`main` 仍是初始工程，不是本项目当前前端集成分支。
 
 本次基线已包含以下已提交改动：
 
@@ -20,6 +20,7 @@
 | `23ce540`（Kevin） | 口粮清单中的当前/历史口粮切换及样式 |
 | `46557b7`（Kevin） | 配料示例图原生预览修复、食品投稿及口粮页面样式 |
 | `776d85b` | 选粮后保存 catalog 产品 ID、配方 ID |
+| `4d8142c`（Kevin） | 新版管家欢迎页、快捷入口与底部导航样式 |
 
 以上是 Git 源码能证明的包含关系，不是微信两个已上传包的精确差异。
 
@@ -50,5 +51,5 @@ Kevin 是提交记录和平台上传者的名称，不是另一个系统或模�
 - 后端 444 passed，41 subtests passed；真实本地 MySQL 烟测覆盖并发认领、中断恢复、重试、撤销、用户隔离和通知去重。
 - 真实包装图完成 12 个节点；用户确认手机收到完成通知，点击后对应投稿及配料正确。
 - 管家真实模型回复经过云端历史加载，在模拟器核对加粗、短段落和观察提醒。
-- 本小程序改动四组离线检查通过：`check-submission-automation.cjs`、`check-guardian-p0.cjs`、`check-food-submissions.cjs`、`check-contracts.cjs`。
+- 合入最新 dev 后，五组离线检查通过：`check-submission-automation.cjs`、`check-guardian-p0.cjs`、`check-food-submissions.cjs`、`check-contracts.cjs`、`check-assistant-chat.cjs`。微信 CLI preview 编译打包通过，总包 1,339,816 字节、主包 966,453 字节；预览不会替换团队体验版或正式版。
 - 干净候选 0.0.4-rc1017 已通过微信 CLI 编译上传。Mac 自动预览已成功加载开发包；Mac 服务通知入口尚未完成最终验收。
