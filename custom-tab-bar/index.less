@@ -35,3 +35,15 @@
   color: @colors-primary;
   font-weight: 600;
 }
+
+// Match the assistant design without changing the other tabs' screens.
+.assistant-tab-bar {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: none;
+  .tab-item { color: #a699ae; font-size: 21rpx; gap: 4rpx; }
+  .active { color: #7460d9; }
+}
+.assistant-tab-icon { display: flex; align-items: center; justify-content: center; width: 41rpx; height: 41rpx; }
+.assistant-tab-image-home { width: 34.14rpx; height: 34.14rpx; }
+.assistant-tab-image-assistant { width: 37.56rpx; height: 37.56rpx; }
+.assistant-tab-image-my { width: 30.72rpx; height: 29.01rpx; }

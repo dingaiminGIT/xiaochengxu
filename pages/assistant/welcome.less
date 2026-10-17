@@ -1,0 +1,219 @@
+// Figma 5:2 — scoped page palette and responsive 402px composition.
+@welcome-ink: #302846;
+@welcome-primary: #7460d9;
+@welcome-muted: #a296aa;
+@welcome-shadow: 0 9rpx 30rpx rgba(143, 108, 169, 0.09);
+
+.page.chat-layout.welcome-mode {
+  background: linear-gradient(180deg, #e4daff 0%, #f9e4ec 46%, #fff9f4 100%);
+}
+.welcome-mode .chat-message-scroll {
+  margin: 0;
+  border-radius: 0;
+}
+.welcome-mode .content {
+  padding: 4rpx 37rpx 30rpx;
+}
+.welcome-mode .chat-welcome {
+  padding: 0;
+}
+.welcome-hero {
+  position: relative;
+  height: 448rpx;
+  margin: 0 -37rpx;
+  color: @welcome-ink;
+}
+.welcome-pets {
+  position: absolute;
+  top: -7rpx;
+  left: 99rpx;
+  width: 552rpx;
+  height: 362rpx;
+}
+.welcome-hero .welcome-history {
+  position: absolute;
+  top: 7rpx;
+  right: 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 164rpx;
+  height: 54rpx;
+  padding: 0;
+  margin: 0;
+  border-radius: @radius-pill;
+  background: rgba(255, 255, 255, 0.65);
+  color: #786582;
+  font-size: 21rpx;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.welcome-hero .welcome-copy {
+  position: absolute;
+  top: 317rpx;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+.welcome-hero .welcome-title {
+  color: @welcome-ink;
+  font-size: 52rpx;
+  font-weight: 900;
+  line-height: 78rpx;
+  white-space: nowrap;
+}
+.welcome-hero .welcome-description {
+  margin-top: 7rpx;
+  color: #786582;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  white-space: nowrap;
+}
+.welcome-star { position: absolute; }
+.welcome-star-left { left: 54rpx; top: 155rpx; color: #ba9cdd; font-size: 47rpx; }
+.welcome-star-right { right: 48rpx; top: 250rpx; color: #c99cbf; font-size: 43rpx; }
+.welcome-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 19rpx;
+  margin-top: 22rpx;
+}
+.shortcut-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9rpx;
+  height: 164rpx;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  width: 100%;
+  border-radius: 37rpx;
+  background: @colors-surface;
+  color: @welcome-ink;
+  box-shadow: @welcome-shadow;
+  font-size: 26rpx;
+  font-weight: 500;
+  line-height: 41rpx;
+}
+.shortcut-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 71rpx;
+  height: 71rpx;
+  border-radius: 24rpx;
+}
+.shortcut-icon-diet { background: #f3e9cf; }
+.shortcut-icon-health { background: #ffe5e9; }
+.shortcut-icon-food { background: #e6e0fc; }
+.shortcut-icon-toy { background: #ddf1ee; }
+.shortcut-icon-photo { background: #e2edff; }
+.shortcut-icon-guide { background: #f7e6da; }
+.welcome-suggestions { margin-top: 41rpx; }
+.suggestion-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 41rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #594a68;
+}
+.suggestion-hint { font-size: 21rpx; font-weight: 400; color: #9a88a1; }
+.welcome-suggestions .quick-prompts { margin-top: 19rpx; gap: 19rpx; }
+.welcome-suggestions .quick-prompts button {
+  justify-content: space-between;
+  height: 60rpx;
+  min-height: 60rpx;
+  padding: 0 24rpx;
+  border-radius: @radius-pill;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 22rpx;
+  line-height: 34rpx;
+  color: #6a5878;
+}
+.welcome-suggestions .quick-prompts text { margin: 0; color: inherit; }
+.welcome-suggestions .quick-prompts image { width: 20.77rpx; height: 15.80rpx; flex-shrink: 0; }
+.welcome-pressed { opacity: 0.75; transform: translateY(2rpx); }
+
+.chat-layout .chat-input-dock {
+  padding: 22rpx 30rpx 14rpx;
+  background: transparent;
+}
+.chat-layout .chat-input-box {
+  padding: 22rpx 19rpx 22rpx 26rpx;
+  border-radius: 43rpx;
+  box-shadow: @welcome-shadow;
+}
+.composer-row { display: flex; align-items: center; gap: 18rpx; min-height: 67rpx; }
+.chat-layout .chat-textarea {
+  flex: 1;
+  min-width: 0;
+  width: 0;
+  height: 43rpx;
+  min-height: 43rpx;
+  max-height: 172rpx;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 28rpx;
+  font-weight: 400;
+  line-height: 43rpx;
+  color: @welcome-ink;
+}
+// Native textarea placeholders do not consistently inherit the input's line metrics.
+.composer-placeholder {
+  padding: 0;
+  margin: 0;
+  font-family: inherit;
+  font-size: 28rpx;
+  font-weight: 400;
+  line-height: 43rpx;
+  color: @welcome-muted;
+}
+.composer-camera,
+.composer-voice {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 45rpx;
+  height: 67rpx;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+}
+.composer-camera image { width: 36.94rpx; height: 33.21rpx; }
+.composer-voice image { width: 26.21rpx; height: 36.01rpx; }
+.chat-layout .input-actions { gap: 18rpx; margin: 0; min-height: 67rpx; flex-shrink: 0; }
+.chat-layout .input-actions button.send-button { width: 67rpx; min-width: 67rpx; height: 67rpx; background: @welcome-primary; }
+.send-arrow { width: 22.95rpx; height: 26.21rpx; }
+.chat-layout .chat-disclaimer { padding-top: 13rpx; font-size: 19rpx; line-height: 28rpx; color: #9e8ca5; }
+.composer-pet-select {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  width: fit-content;
+  max-width: 100%;
+  margin: 14rpx 0 0;
+  padding: 4rpx 12rpx;
+  border-radius: @radius-pill;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  background: @colors-primarySoft;
+  color: @colors-primaryText;
+}
+.composer-pet-select text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+// Leave room for native status/navigation bars and the home-indicator safe area.
+.compact-welcome {
+  .welcome-hero { height: 416rpx; }
+  .welcome-pets { left: 122rpx; width: 506rpx; height: 330rpx; }
+  .welcome-hero .welcome-copy { top: 285rpx; }
+  .welcome-shortcuts .shortcut-card { height: 154rpx; }
+  .welcome-suggestions { margin-top: 32rpx; }
+  .welcome-suggestions .quick-prompts { gap: 15rpx; margin-top: 15rpx; }
+}
