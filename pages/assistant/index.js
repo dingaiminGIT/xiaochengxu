@@ -108,6 +108,15 @@ function mapMaterialRoles(evidence, fallbackGroups = []) {
 Page({
   data: {
     statusBarHeight: 20,
+    compactWelcome: false,
+    welcomeShortcuts: [
+      { id: 'diet', label: '饮食建议', iconWidth: 39.74, iconHeight: 41.76, prompt: '想了解适合我家宠物的日常饮食建议。' },
+      { id: 'health', label: '状态解读', iconWidth: 44.04, iconHeight: 40.24, prompt: '想聊聊我家宠物最近的状态，需要补充哪些信息？' },
+      { id: 'food', label: '选粮避坑', iconWidth: 35.70, iconHeight: 39.74, prompt: '怎样给我家宠物选粮，有哪些需要注意的地方？' },
+      { id: 'toy', label: '玩具推荐', iconWidth: 39.74, iconHeight: 39.74, prompt: '想给我家宠物选合适的玩具，有什么建议？' },
+      { id: 'photo', label: '拍照问问', iconWidth: 39.74, iconHeight: 35.70 },
+      { id: 'guide', label: '养宠攻略', iconWidth: 35.70, iconHeight: 39.74, prompt: '日常养宠有哪些饮食、清洁和陪伴方面的注意事项？' },
+    ],
     chatMessages: [],
     keyboardHeight: 0,
     currentFood: FOODS.current[0],
@@ -151,10 +160,11 @@ Page({
   },
 
   onLoad() {
-    const { statusBarHeight = 20 } = wx.getWindowInfo();
+    const { statusBarHeight = 20, windowHeight, windowWidth } = wx.getWindowInfo();
     const savedDraft = wx.getStorageSync(accountKey('food_change_draft')) || {};
     this.setData({
       statusBarHeight,
+      compactWelcome: windowHeight / windowWidth < 2.25,
       savedDraft,
       savedMode: !!savedDraft.savedAt,
       chatMessages: [],
@@ -291,6 +301,21 @@ Page({
       targetFoodMatched: false,
     });
     this.setData({ chatScrollTop: 0 });
+  },
+
+  useWelcomeShortcut(event) {
+    const shortcut = this.data.welcomeShortcuts.find((item) => item.id === event.currentTarget.dataset.id);
+    if (!shortcut || this.data.sending) return;
+    if (shortcut.id === 'photo') {
+      this.onIngredientFound();
+      return;
+    }
+    this.usePrompt({ currentTarget: { dataset: { message: shortcut.prompt } } });
+  },
+
+  useKeyboardVoice() {
+    this.focusComposer();
+    wx.showToast({ title: '请使用系统键盘的语音输入', icon: 'none' });
   },
 
   usePrompt(event) {
