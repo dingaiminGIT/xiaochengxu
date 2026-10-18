@@ -46,6 +46,7 @@ export function messageBlocks(message) {
 
 export function mapChatMessage(message) {
   const interaction = message.interaction || {};
+  const health = (message.result || {}).health_analysis || {};
   return {
     ...message,
     text: message.content || message.reply || '',
@@ -63,6 +64,14 @@ export function mapChatMessage(message) {
       ['flow_handoff', 'diet_history', 'medical_record'].includes(a.type),
     ),
     recommendationNote: ((message.result || {}).recommendation || {}).note || '',
+    healthSubjects: (health.subjects || []).map((subject) => ({
+      ...subject,
+      missingText: (subject.missing_dimensions || []).join('、'),
+      unmappedText: (subject.unmapped_dimensions || []).join('、'),
+      skippedText: (subject.skipped_dimensions || []).join('、'),
+    })),
+    healthComparisons: health.comparisons || [],
+    healthPrompt: health.prompt || '',
   };
 }
 
@@ -343,7 +352,10 @@ export const chatMethods = {
     const option = message.interaction.options[Number(index)];
     if (!option) return;
     if (message.response_type !== 'multi_select') {
-      this.sendCloudMessage({ interaction: { slot: message.interaction.slot, value: option.value } }, option.label);
+      this.sendCloudMessage({ interaction: {
+        slot: message.interaction.slot, value: option.value,
+        ...(message.interaction.analysis_id ? { analysis_id: message.interaction.analysis_id } : {}),
+      } }, option.label);
       return;
     }
     let values = [...message.selectedValues];

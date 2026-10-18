@@ -1155,3 +1155,18 @@ page {
 .assistant-emphasis { font-weight: 700; }
 
 @import "./welcome.less";
+
+
+.health-analysis { display: flex; flex-direction: column; gap: @space-md; }
+.health-subject { display: flex; flex-direction: column; gap: @space-sm; }
+.health-product { font-size: @type-cardTitle; font-weight: @weight-semibold; line-height: @leading-body; overflow-wrap: break-word; }
+.health-concern { display: flex; flex-direction: column; gap: @space-compact; padding: @space-md 0; border-top: 1rpx solid @colors-line; }
+.health-concern-heading { display: flex; flex-wrap: wrap; align-items: center; gap: @space-compact; }
+.health-title { font-weight: @weight-semibold; font-size: @type-cardTitle; }
+.health-tag { padding: @space-xxs @space-compact; border-radius: @radius-small; font-size: @type-caption; line-height: @leading-compact; background: @colors-surfaceMuted; color: @colors-secondary; }
+.health-tag-attention { background: @colors-food; color: @colors-accentText; }
+.health-tag-advantage { background: @colors-primarySoft; color: @colors-primaryText; }
+.health-evidence { font-size: @type-small; color: @colors-secondary; line-height: @leading-body; }
+.health-detail, .health-observation { display: block; font-size: @type-body; line-height: @leading-body; white-space: pre-line; overflow-wrap: break-word; }
+.health-note { display: block; font-size: @type-caption; color: @colors-secondary; line-height: @leading-body; }
+.health-prompt { font-weight: @weight-semibold; font-size: @type-body; line-height: @leading-body; }
