@@ -9,7 +9,8 @@
     "lint:fix-eslint": "eslint --ext .js,.ts ./ --max-warnings 0 --ignore-path .gitignore --ignore-path .eslintignore --fix",
     "lint:fix-prettier": "prettier ./ --ignore-path .gitignore --ignore-path .eslintignore --ignore-path .prettierignore --write './**/*.{js,ts}' --ignore-unknown",
     "theme": "node scripts/build-theme.js",
-    "test:contracts": "node scripts/check-contracts.cjs"
+    "test:contracts": "node scripts/check-contracts.cjs",
+    "test:health-analysis": "node scripts/check-health-analysis.cjs"
   },
   "keywords": [
     "wechat",

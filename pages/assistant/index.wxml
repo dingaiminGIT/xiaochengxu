@@ -41,7 +41,27 @@
         </view>
       </view>
     </view>
-    <view class="conversation-thread"><view wx:for="{{chatMessages}}" wx:key="id" class="thread-message {{item.role}} {{item.response_type === 'risk_alert' ? 'risk-message' : ''}}"><view wx:if="{{item.role === 'assistant'}}" class="assistant-label"><view class="reply-avatar"><p-icon name="cat" tone="accentText" size="32" /></view><text>宠物管家</text></view><view wx:if="{{item.images && item.images.length}}" class="message-images"><image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" class="message-image" src="{{img}}" mode="aspectFill" data-current="{{img}}" bindtap="previewComposerImage" /></view><view wx:if="{{item.text || item.riskReasons || item.limitedInfo || item.response_type === 'processing'}}" class="message-body"><view wx:if="{{item.blocks.length}}" class="assistant-blocks"><view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="index" class="assistant-block"><text selectable><text wx:if="{{block.marker}}">{{block.marker}} </text><text wx:for="{{block.segments}}" wx:for-item="segment" wx:key="index" class="{{segment.strong ? 'assistant-emphasis' : ''}}">{{segment.text}}</text></text></view></view><text wx:else selectable>{{item.text}}</text><text wx:if="{{item.riskReasons}}" class="risk-reasons">需要留意：{{item.riskReasons}}</text>
+    <view class="conversation-thread"><view wx:for="{{chatMessages}}" wx:key="id" class="thread-message {{item.role}} {{item.response_type === 'risk_alert' ? 'risk-message' : ''}}"><view wx:if="{{item.role === 'assistant'}}" class="assistant-label"><view class="reply-avatar"><p-icon name="cat" tone="accentText" size="32" /></view><text>宠物管家</text></view><view wx:if="{{item.images && item.images.length}}" class="message-images"><image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" class="message-image" src="{{img}}" mode="aspectFill" data-current="{{img}}" bindtap="previewComposerImage" /></view><view wx:if="{{item.text || item.riskReasons || item.limitedInfo || item.response_type === 'processing'}}" class="message-body"><view wx:if="{{item.healthSubjects.length}}" class="health-analysis">
+  <view wx:for="{{item.healthSubjects}}" wx:for-item="subject" wx:key="index" class="health-subject">
+    <text class="health-product" selectable>{{subject.label}} · 营养健康解读</text>
+    <text wx:if="{{!subject.concerns.length}}" class="health-note" selectable>{{subject.message}}</text>
+    <view wx:for="{{subject.concerns}}" wx:for-item="concern" wx:key="title" class="health-concern">
+      <view class="health-concern-heading"><text class="health-title" selectable>{{concern.title}}</text><text class="health-tag health-tag-{{concern.kind}}">{{concern.tag}}</text></view>
+      <text class="health-evidence" selectable>{{concern.evidence_text}}</text>
+      <text class="health-detail" selectable>{{concern.mechanism_text}}</text>
+      <text class="health-observation" selectable>❗ {{concern.observation_text}}</text>
+    </view>
+    <text wx:if="{{subject.missingText}}" class="health-note" selectable>资料不足：{{subject.missingText}}</text>
+    <text wx:if="{{subject.unmappedText}}" class="health-note" selectable>暂缺对应知识：{{subject.unmappedText}}</text>
+    <text wx:if="{{subject.skippedText}}" class="health-note" selectable>中间档暂不解读：{{subject.skippedText}}</text>
+    <text class="health-note" selectable>{{subject.note}}</text>
+  </view>
+  <view wx:for="{{item.healthComparisons}}" wx:for-item="comparison" wx:key="index" class="health-subject">
+    <text class="health-product" selectable>{{comparison.left}} 与 {{comparison.right}} · 对比</text>
+    <text class="health-detail" selectable>{{comparison.text}}</text>
+  </view>
+  <text class="health-prompt">{{item.healthPrompt}}</text>
+</view><view wx:elif="{{item.blocks.length}}" class="assistant-blocks"><view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="index" class="assistant-block"><text selectable><text wx:if="{{block.marker}}">{{block.marker}} </text><text wx:for="{{block.segments}}" wx:for-item="segment" wx:key="index" class="{{segment.strong ? 'assistant-emphasis' : ''}}">{{segment.text}}</text></text></view></view><text wx:else selectable>{{item.text}}</text><text wx:if="{{item.riskReasons}}" class="risk-reasons">需要留意：{{item.riskReasons}}</text>
 <text wx:if="{{item.limitedInfo}}" class="chat-limited">信息有限，可补充情况让回答更准确。</text>
 <view wx:if="{{item.response_type === 'processing'}}" class="chat-limited">正在识别食品投稿，可稍后再询问识别结果。</view>
 </view>
