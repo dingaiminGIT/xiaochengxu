@@ -42,11 +42,7 @@ Page({
       foodCount: diet ? 1 : 0,
       pets: (s.pets || (s.pet ? [s.pet] : [])).map((p) => ({
         ...p,
-        meta: [
-          p.breed || p.type,
-          p.age_text || (p.age !== '' && p.age != null ? p.age + ' 岁' : ''),
-          p.weight ? p.weight + ' kg' : '',
-        ]
+        meta: [p.breed || p.type, p.age_text || (p.age !== '' && p.age != null ? `${p.age  } 岁` : '')]
           .filter(Boolean)
           .join(' · '),
       })),
@@ -56,13 +52,14 @@ Page({
         signedIn: hasSession(),
         image: parent.image || parent.avatarUrl || '',
       },
+      reminderCount: (s.reminders || []).length,
       favoriteCount: s.favorites.length,
       postCount: s.posts.length,
       toysCount: s.supplies.toys.length,
     });
   },
   editPet() {
-    const pet = this.data.pet;
+    const {pet} = this.data;
     wx.navigateTo({
       url: pet ? `/pages/pet-space/pet-edit?id=${encodeURIComponent(pet.id)}` : '/pages/pet-space/pet-edit?mode=create',
     });
@@ -75,6 +72,12 @@ Page({
     if (!pet) return;
     saveStore({ pet, selectedPetId: pet.id });
     this.refreshData();
+  },
+  switchPet() {
+    const { pets, pet } = this.data;
+    if (pets.length < 2) return;
+    const next = pets[(pets.findIndex((item) => item.id === pet?.id) + 1) % pets.length];
+    this.selectPet({ currentTarget: { dataset: { id: next.id } } });
   },
   editPetCard(e) {
     wx.navigateTo({ url: `/pages/pet-space/pet-edit?id=${encodeURIComponent(e.currentTarget.dataset.id)}` });

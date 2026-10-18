@@ -1,5 +1,6 @@
 Component({
   properties: {
+    appearance: { type: String, value: '' },
     allowSave: { type: Boolean, value: true },
     posts: {
       type: Array,
@@ -13,8 +14,8 @@ Component({
   methods: {
     arrange() {
       const posts = this.properties.posts || [];
-      const heights = [0, 0],
-        columns = [[], []];
+      const heights = [0, 0];
+        const columns = [[], []];
       const width = (wx.getWindowInfo().windowWidth - 46) / 2;
       posts.forEach((p) => {
         const ratio = (this._ratios || {})[p.image] || p.imageRatio || 1.05;
@@ -26,7 +27,7 @@ Component({
     },
     imageLoaded(e) {
       const { width, height } = e.detail;
-      const src = e.currentTarget.dataset.src;
+      const {src} = e.currentTarget.dataset;
       if (!width || !height) return;
       this._ratios = this._ratios || {};
       const ratio = height / width;

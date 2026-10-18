@@ -17,7 +17,7 @@
 
     <view wx:if="{{!chatMessages.length}}" class="chat-welcome">
       <view class="welcome-hero">
-        <image class="welcome-pets" src="/static/assistant/welcome/hero-mobile.png" mode="aspectFit" aria-label="依偎在一起的猫咪和狗狗" />
+        <image class="welcome-pets" src="/static/design/assistant-hero.png" mode="aspectFit" aria-label="依偎在一起的猫咪和狗狗" />
         <button class="welcome-history" bindtap="openConversationHistory" aria-label="打开对话记录">◷ 对话记录</button>
         <text class="welcome-star welcome-star-left" aria-hidden="true">✦</text>
         <text class="welcome-star welcome-star-right" aria-hidden="true">✧</text>

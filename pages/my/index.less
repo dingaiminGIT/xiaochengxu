@@ -1,421 +1,355 @@
 @import '../../styles/tokens.less';
-.page.tab-page {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  padding-bottom: calc(@layout-tabHeight + @space-lg + env(safe-area-inset-bottom));
+.pet-page {
+  color: #393047;
+  background: linear-gradient(180deg, #ffdcc4 0, #f5f5eb 620rpx, #fff9f6 1630rpx);
 }
-.screen-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding-bottom: @space-compact;
+.pet-page .screen-body {
+  padding: 0 37rpx 70rpx;
 }
-.screen-body > view,
-.screen-body > button {
-  flex-shrink: 0;
-}
-
 .pet-heading {
-  display: flex;
-  flex-direction: column;
-  gap: @space-xs;
-  margin: 0 0 @space-md;
-}
-.eyebrow {
-  font-size: @type-micro;
-  letter-spacing: 4rpx;
-  color: @colors-primaryText;
+  position: relative;
+  height: 237rpx;
+  box-sizing: border-box;
+  padding-top: 35rpx;
 }
 .hero-title {
-  line-height: 1.35;
-  font-size: @type-pageTitle;
-  font-weight: @weight-semibold;
-}
-.pet-card {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 30rpx;
-  margin: 0;
-  padding: 42rpx 30rpx;
-  border-radius: @radius-large;
-  background: @colors-pet;
-  color: @colors-inverse;
-  text-align: left;
+  display: block;
+  font-size: 47rpx;
+  font-weight: 900;
   line-height: 1.5;
 }
-.pet-circle {
-  position: relative;
-  flex-shrink: 0;
-  width: 120rpx;
-  height: 120rpx;
-  border: 3rpx dashed fade(@colors-inverse, 50%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.pet-circle.has-pet {
-  border-color: transparent;
-  background: fade(@colors-inverse, 12%);
-}
-.pet-badge {
-  position: absolute;
-  top: -8rpx;
-  right: -8rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: @colors-accent;
-  border: 6rpx solid @colors-pet;
-  border-radius: 50%;
-  width: 46rpx;
-  height: 46rpx;
-}
-.pet-copy {
-  min-width: 0;
-}
-.pet-copy text {
+.pet-heading .caption {
   display: block;
-}
-.pet-name {
-  font-size: @type-body;
-  font-weight: @weight-semibold;
-}
-.pet-meta {
-  font-size: @type-micro;
-  color: @colors-petText;
-  margin-top: @space-compact;
-}
-.pet-edit {
-  color: @colors-accent;
-  font-size: @type-micro;
-  margin-top: @space-roomy;
-}
-.pet-shelves {
-  display: flex;
-  gap: @space-md;
-  margin-top: 26rpx;
-}
-.pet-shelves > button {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  padding: 30rpx;
-  border-radius: @radius-large;
-  background: @colors-toy;
-  text-align: left;
-  margin: 0;
+  white-space: pre-line;
+  margin-top: 13rpx;
+  font-size: 22rpx;
+  color: #8d8595;
   line-height: 1.5;
 }
-.pet-shelves > button + button {
-  background: @colors-food;
-}
-.pet-shelves > button > text {
-  display: block;
-}
-.pet-shelves .caption {
-  margin-top: 10rpx;
-  font-size: @type-micro;
-}
-.shelf-icon {
-  margin-bottom: @space-roomy;
-}
-.shelf-arrow {
+.pet-hero {
   position: absolute;
-  right: 24rpx;
-  top: 24rpx;
-  color: @colors-muted;
-  font-size: @type-small;
-}
-.parent-heading {
-  margin-top: 44rpx;
-  font-size: @type-small;
-}
-.parent-heading text + text {
-  font-size: @type-micro;
-}
-.parent-card {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 22rpx;
-  background: @colors-surface;
-  padding: @space-md;
-  border-radius: @radius-medium;
-  text-align: left;
-  margin: 0;
-}
-.parent-avatar {
-  width: 78rpx;
-  height: 78rpx;
-  border-radius: 24rpx;
-  flex-shrink: 0;
-  background: @colors-primarySoft;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.parent-copy {
-  flex: 1;
-  min-width: 0;
-  font-size: @type-small;
-}
-.parent-copy text {
-  display: block;
-}
-.parent-copy .caption {
-  font-size: @type-micro;
-  margin-top: @space-xs;
-}
-.profile-links {
-  margin: @space-md 0 @space-compact;
-  padding: 0 @space-md;
-  background: @colors-surface;
-  border-radius: @radius-medium;
-  overflow: hidden;
-}
-.settings-links {
-  margin-top: @space-roomy;
-}
-.detail-image {
-  width: 100%;
-  border-radius: @radius-medium;
-}
-.detail-body {
-  line-height: 1.9;
-  margin: @space-md 0;
-  white-space: pre-wrap;
-}
-
-.parent-card {
-  line-height: 1.4;
-}
-.parent-copy {
-  display: flex;
-  flex-direction: column;
-  gap: @space-xs;
-}
-.parent-copy .caption {
-  margin-top: 0;
-  line-height: 1.4;
-}
-.profile-links .menu-row {
-  line-height: 1.4;
-  padding: @space-sm 0;
-  min-height: 108rpx;
-  border-radius: 0;
-}
-.profile-links .menu-row + .menu-row {
-  border-top: 1rpx solid fade(@colors-line, 45%);
-}
-.profile-end {
-  display: flex;
-  align-items: center;
-  gap: @space-sm;
-  color: @colors-muted;
-  font-size: @type-small;
-}
-.profile-end text {
-  min-width: 32rpx;
-  text-align: right;
-  line-height: 1;
-}
-
-.pet-name {
-  font-size: @type-cardTitle;
-  font-weight: @weight-semibold;
-}
-.hero-title {
-  font-weight: @weight-bold;
-}
-.pet-shelves > button > text:not(.caption):not(.shelf-arrow) {
-  font-size: @type-cardTitle;
-  font-weight: @weight-semibold;
-}
-.parent-heading {
-  font-size: @type-body;
-  font-weight: @weight-semibold;
-}
-.parent-copy > text:first-child {
-  font-size: @type-body;
-  font-weight: @weight-medium;
-}
-
-.pet-avatar-photo {
-  width: 120rpx;
-  height: 120rpx;
-  border-radius: 50%;
-  overflow: hidden;
+  right: -26rpx;
+  top: -6rpx;
+  width: 276rpx;
+  height: 216rpx;
 }
 .pet-family {
-  padding: @space-md;
-  background: @colors-pet;
-  border-radius: @radius-medium;
+  padding: 0 22rpx 30rpx;
+  border-radius: 34rpx;
+  background: white;
 }
 .family-heading {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: @space-roomy;
-  color: @colors-inverse;
-  font-size: @type-small;
-  font-weight: @weight-semibold;
+  height: 86rpx;
+  padding-left: 4rpx;
+  gap: 12rpx;
+  font-size: 26rpx;
+}
+.family-heading > text:first-child {
+  flex: 1;
 }
 .family-heading .caption {
-  color: @colors-petText;
-  font-size: @type-micro;
-  font-weight: @weight-regular;
+  color: #8d8595;
+  font-size: 19rpx;
+}
+.family-swap {
+  width: 82rpx;
+  height: 82rpx;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.family-swap image {
+  width: 37rpx;
+  height: 37rpx;
+}
+.family-scroll {
+  width: 100%;
 }
 .family-row {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: @space-sm;
+  display: flex;
+  gap: 19rpx;
 }
 .family-card {
   position: relative;
-  width: 100%;
+  flex: 1;
   min-width: 0;
-  border-radius: @radius-medium;
-  padding: @space-sm;
-  background: @colors-accent;
+  height: 246rpx;
   box-sizing: border-box;
+  padding: 20rpx;
+  border: 2rpx solid #ede8e1;
+  border-radius: 34rpx;
+  background: #faf8f5;
+}
+.family-card.active {
+  border: 3rpx solid #9b83dd;
+  padding: 19rpx;
+  background: #f4effc;
 }
 .family-select {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  padding: 0;
   margin: 0;
+  padding: 0;
   background: transparent;
+  line-height: 1.5;
   text-align: left;
-  line-height: @leading-compact;
 }
 .family-photo,
 .family-placeholder {
-  width: 80rpx;
-  height: 80rpx;
-  border: 4rpx solid @colors-inverse;
-  border-radius: @radius-pill;
-  box-sizing: border-box;
+  width: 82rpx;
+  height: 82rpx;
+  border-radius: 50%;
   overflow: hidden;
 }
 .family-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: @colors-primarySoft;
+  background: #eee8f5;
 }
 .family-name {
-  font-size: @type-cardTitle;
-  font-weight: @weight-semibold;
-  color: @colors-text;
-  margin-top: @space-compact;
+  margin-top: 19rpx;
+  font-size: 28rpx;
+  font-weight: 500;
   max-width: 100%;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-}
-.family-info-row {
-  display: flex;
-  align-items: center;
-  gap: @space-xs;
-  width: 100%;
-  margin-top: @space-xs;
-}
-.family-meta {
-  flex: 1;
-  min-width: 0;
-  font-size: @type-micro;
-  color: @colors-accentText;
-  line-height: @leading-compact;
-  max-width: 100%;
-  overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .family-check {
   position: absolute;
-  top: 14rpx;
-  right: 14rpx;
-  width: 34rpx;
-  height: 34rpx;
+  top: 20rpx;
+  right: 15rpx;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: @radius-pill;
-  background: @colors-primary;
+  gap: 5rpx;
+  width: 103rpx;
+  height: 41rpx;
+  background: #7d64d8;
+  color: white;
+  border-radius: 22rpx;
+  font-size: 19rpx;
 }
-.family-card .family-edit {
-  flex: 0 0 40rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40rpx;
-  height: 40rpx;
+.family-check image {
+  width: 22rpx;
+  height: 22rpx;
+}
+.family-info-row {
+  margin-top: 12rpx;
+}
+.family-meta {
+  padding-right: 36rpx;
+  color: #8d8595;
+  font-size: 17rpx;
+  line-height: 26rpx;
+}
+.family-meta text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.family-edit {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 82rpx;
+  height: 82rpx;
   margin: 0;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
-  line-height: 1;
-  border-radius: @radius-pill;
+}
+.family-edit image {
+  width: 30rpx;
+  height: 30rpx;
 }
 .family-add-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
+  flex: 1;
   min-width: 0;
-  height: 100%;
+  height: 246rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22rpx;
   margin: 0;
-  padding: @space-sm;
-  background: fade(@colors-inverse, 10%);
-  border-radius: @radius-medium;
-}
-.family-add-icon {
-  width: 72rpx;
-  height: 72rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2rpx dashed fade(@colors-inverse, 60%);
-  border-radius: @radius-pill;
-}
-.add-family-pet {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: @space-sm 0 @space-md;
   padding: 0;
-  height: @control-compactHeight;
-  background: @colors-primarySoft;
-  border-radius: @radius-small;
+  background: #f8f7fa;
+  color: #81758f;
+  box-sizing: border-box;
+  border: 2rpx dashed #dad5e2;
+  border-radius: 34rpx;
+  font-size: 22rpx;
 }
-
-.family-scroll {
-  width: 100%;
-}
-.family-slider {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: @space-sm;
+.family-add-card image {
+  width: 45rpx;
+  height: 45rpx;
 }
 .family-slider .family-card {
-  flex: 0 0 280rpx;
-  width: 280rpx;
+  flex: 0 0 272rpx;
 }
 .family-slider .family-add-card {
-  flex: 0 0 112rpx;
-  width: 112rpx;
-  height: auto;
+  flex: 0 0 123rpx;
 }
-.family-heading {
-  gap: @space-sm;
+.add-family-pet {
+  margin: 15rpx 0 -8rpx;
+  padding: 0;
+  height: 67rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9rpx;
+  background: #f8f7fa;
+  color: #81758f;
+  box-sizing: border-box;
+  border: 2rpx dashed #dad5e2;
+  border-radius: 34rpx;
+  font-size: 22rpx;
 }
-.family-heading > text:first-child {
+.add-family-pet image {
+  width: 30rpx;
+  height: 30rpx;
+}
+.first-pet {
+  display: flex;
+  align-items: center;
+  gap: 30rpx;
+  width: 100%;
+  height: 157rpx;
+  margin: 0;
+  padding: 25rpx 34rpx;
+  background: white;
+  border-radius: 34rpx;
+  text-align: left;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+.first-pet text {
+  display: block;
+}
+.first-pet .caption {
+  margin-top: 12rpx;
+  font-size: 21rpx;
+}
+.pet-shelves {
+  display: flex;
+  gap: 22rpx;
+  margin-top: 30rpx;
+}
+.pet-shelves > button {
+  flex: 1;
+  min-width: 0;
+  height: 172rpx;
+  box-sizing: border-box;
+  padding: 24rpx;
+  margin: 0;
+  border-radius: 37rpx;
+  background: #e3edd9;
+  border: 2rpx solid #cfdebf;
+  text-align: left;
+  line-height: 1.5;
+}
+.pet-shelves > button + button {
+  background: #fff0de;
+  border-color: #edd9bb;
+}
+.shelf-image {
+  display: block;
+  width: 45rpx;
+  height: 45rpx;
+}
+.shelf-icon {
+  margin-bottom: 9rpx;
+}
+.pet-shelves > button > text {
+  display: block;
+  font-size: 28rpx;
+}
+.pet-shelves > button > .caption {
+  font-size: 19rpx;
+  color: #8d8595;
+  margin-top: 1rpx;
+}
+.parent-heading {
+  margin: 35rpx 0 15rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+.parent-card {
+  display: flex;
+  align-items: center;
+  gap: 26rpx;
+  width: 100%;
+  height: 116rpx;
+  margin: 0;
+  padding: 17rpx 30rpx;
+  box-sizing: border-box;
+  border-radius: 37rpx;
+  background: white;
+  text-align: left;
+}
+.parent-avatar {
+  width: 45rpx;
+  height: 45rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.parent-copy {
+  flex: 1;
+  min-width: 0;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+.parent-copy text {
+  display: block;
+}
+.parent-copy .caption {
+  margin-top: 8rpx;
+  font-size: 19rpx;
+  color: #8d8595;
+}
+.profile-links {
+  background: white;
+  border-radius: 37rpx;
+  margin-top: 30rpx;
+  padding: 11rpx 26rpx;
+}
+.profile-links .menu-row {
+  height: 86rpx;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  gap: 22rpx;
+  font-size: 24rpx;
+}
+.menu-image {
+  width: 37rpx;
+  height: 37rpx;
   flex-shrink: 0;
 }
-.family-heading .caption {
-  text-align: right;
+.profile-end {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  color: #8d8595;
+  font-size: 19rpx;
+}
+.parent-arrow {
+  width: 30rpx;
+  height: 30rpx;
+}
+.menu-arrow {
+  width: 28rpx;
+  height: 28rpx;
 }

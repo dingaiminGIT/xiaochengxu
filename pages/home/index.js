@@ -36,7 +36,13 @@ Page({
     this.refreshData();
     this.syncPets();
     const reminderAccount = accountKey('reminders');
-    refreshCloudReminders().then(() => { if (reminderAccount === accountKey('reminders')) this.refreshData(); }).catch(() => { /* Cached reminders stay visible until the next refresh. */ });
+    refreshCloudReminders()
+      .then(() => {
+        if (reminderAccount === accountKey('reminders')) this.refreshData();
+      })
+      .catch(() => {
+        /* Cached reminders stay visible until the next refresh. */
+      });
     // 从发帖返回时刷新；热更新/空列表时补拉，避免样式区空白
     if (this._reloadFeedOnShow || (!this.data.posts.length && !this.data.loading)) {
       this._reloadFeedOnShow = false;
@@ -85,7 +91,7 @@ Page({
     wx.navigateTo({ url: '/pages/pet-space/reminders' });
   },
   openCalendar() {
-    wx.navigateTo({ url: '/pages/pet-space/reminders?date=' + (this.data.calendarDate || localDate()) });
+    wx.navigateTo({ url: `/pages/pet-space/reminders?date=${  this.data.calendarDate || localDate()}` });
   },
   refreshData() {
     const calendarDate = this.data.calendarDate || localDate();
@@ -97,6 +103,7 @@ Page({
     const notes = (record && record.litterNotes) || [];
     const litterStatus = notes.length ? notes[notes.length - 1].shape : '';
     this.setData({
+      recordUpdated: record?.time ? `${record.time} 更新 · 手动记录` : '今天还没有记录 · 手动记录',
       pet: currentPet(),
       calendarDate,
       calendarDays: calendarDays(shiftDate(localDate(), -1), 7, calendarDate, reminders),
@@ -114,7 +121,8 @@ Page({
         key,
         label,
         unit,
-        value: record ? record[key] : '—',
+        hasValue: !!record && record[key] !== undefined && record[key] !== null && record[key] !== '',
+        value: record && record[key] !== undefined && record[key] !== null && record[key] !== '' ? record[key] : '—',
         status: key === 'litter' ? litterStatus : '',
       })),
     });
@@ -142,7 +150,7 @@ Page({
   },
   toggleSave(e) {
     const id = e.detail.id || e.currentTarget.dataset.id;
-    const favorites = loadStore().favorites;
+    const {favorites} = loadStore();
     saveStore({ favorites: favorites.includes(id) ? favorites.filter((v) => v !== id) : [...favorites, id] });
     this.filterPosts();
   },

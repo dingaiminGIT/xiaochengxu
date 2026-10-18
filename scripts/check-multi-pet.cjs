@@ -9,3 +9,25 @@ saveStore({selectedPetId:'b',pet:{id:'b'}});cachePetList([{id:'a',is_default:tru
 cachePetList([{id:'a',is_default:true}]);assert.equal(currentPet().id,'a');
 cachePetList([]);assert.equal(currentPet(),null);
 console.log('PASS: multiple profiles, selected pet persists, default fallback and legacy record isolation');
+
+// Exercise the profile screen without making any account or network writes.
+let page, navigation;
+context.Page = (definition) => { page = definition; };
+context.wx.navigateTo = ({url}) => { navigation = url; };
+context.hasSession = () => false;
+vm.runInContext(fs.readFileSync('pages/my/index.js','utf8').replace(/^import .*;\n/gm,''), context);
+page.setData = (patch) => Object.assign(page.data, patch);
+cachePetList([{id:'a',name:'奶糖'}, {id:'b',name:'糯米'}]);
+page.refreshData();
+page.switchPet();
+assert.equal(currentPet().id,'b');
+page.editPetCard({currentTarget:{dataset:{id:'a'}}});
+assert.equal(navigation,'/pages/pet-space/pet-edit?id=a');
+assert.equal(currentPet().id,'b','Editing another card must preserve selected pet');
+page.switchPet();
+assert.equal(currentPet().id,'a');
+cachePetList([{id:'a'}]); page.refreshData(); page.switchPet();
+assert.equal(currentPet().id,'a');
+cachePetList([]); page.refreshData(); page.switchPet();
+assert.equal(currentPet(),null);
+console.log('PASS: quick switching, independent card editing, single/empty profile handling');

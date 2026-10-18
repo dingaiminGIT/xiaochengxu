@@ -471,3 +471,285 @@
 .home-calendar-days .calendar-day.today.no-reminder {
   border-color: @colors-primary;
 }
+
+// Figma 18:32 — native page layout, with live pet and community data.
+.home-page {
+  color: #393047;
+  background: linear-gradient(180deg, #c8eee2 0, #f5f5eb 620rpx, #fff9f6 1630rpx);
+}
+.home-page .screen-body {
+  padding: 0 37rpx 80rpx;
+}
+.home-hero {
+  position: relative;
+  height: 190rpx;
+}
+.home-hero image {
+  position: absolute;
+  width: 270rpx;
+  height: 209rpx;
+  right: -24rpx;
+  top: -7rpx;
+}
+.home-hero-title {
+  display: block;
+  padding-top: 7rpx;
+  font-size: 41rpx;
+  font-weight: 900;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+.home-hero .caption {
+  display: block;
+  margin-top: 14rpx;
+  font-size: 20.5rpx;
+  color: #8d8595;
+}
+.home-page .pet-calendar {
+  padding: 19rpx 22rpx 22rpx;
+  border-radius: 37rpx;
+  box-shadow: none;
+}
+.calendar-heading {
+  margin-bottom: 15rpx;
+  height: 52rpx;
+}
+.calendar-pet {
+  gap: 13rpx;
+}
+.calendar-pet-copy > text:first-child {
+  font-size: 24rpx;
+  font-weight: 500;
+}
+.daily-pet-button {
+  width: 52rpx;
+  height: 52rpx;
+  padding: 0;
+}
+.daily-pet-image,
+.daily-pet-photo {
+  width: 52rpx;
+  height: 52rpx;
+}
+.calendar-heading .calendar-more {
+  color: #8d8595;
+  font-size: 22rpx;
+}
+.home-calendar-days {
+  gap: 10rpx;
+}
+.home-calendar-days .calendar-day {
+  height: 108rpx;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 22rpx;
+  background: white;
+}
+.calendar-day-inner {
+  padding: 7rpx 0;
+  gap: 4rpx;
+  background: transparent;
+}
+.home-calendar-days .calendar-day.no-reminder,
+.home-calendar-days .calendar-day.today-reminder {
+  background: white;
+}
+.home-calendar-days .calendar-day.selected,
+.home-calendar-days .calendar-day.selected.no-reminder {
+  background: #e6dbfa;
+  color: #7d64d8;
+}
+.home-calendar-days .calendar-day.today-reminder .calendar-day-inner {
+  background: transparent;
+  color: inherit;
+}
+.home-calendar-days .calendar-day .calendar-week {
+  color: #8d8595;
+  font-size: 17rpx;
+}
+.home-calendar-days .calendar-day.selected .calendar-week {
+  color: #7d64d8;
+}
+.calendar-number {
+  font-size: 30rpx;
+  line-height: 45rpx;
+  font-weight: 500;
+}
+.home-calendar-days .calendar-dot.has-reminder,
+.home-calendar-days .calendar-day.today-reminder .calendar-dot.has-reminder {
+  background: #7d64d8;
+}
+.calendar-summary {
+  height: 52rpx;
+  box-sizing: border-box;
+  margin-top: 15rpx;
+  padding: 0 15rpx;
+  justify-content: center;
+  border-radius: 26rpx;
+  background: #f7f3fc;
+  color: #7d64d8;
+  font-size: 22rpx;
+}
+.calendar-summary > text {
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.daily-card {
+  margin-top: 22rpx;
+  padding: 17rpx 26rpx 22rpx;
+  border-radius: 37rpx;
+  background: white;
+}
+.daily-title {
+  color: #393047;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+.daily-head > .text-button {
+  font-size: 22rpx;
+  color: #8d8595;
+}
+.daily-updated {
+  display: block;
+  margin-top: 3rpx;
+  font-size: 17rpx;
+  color: #8d8595;
+}
+.daily-metrics {
+  margin: 25rpx 0 22rpx;
+}
+.metric {
+  padding: 0;
+}
+.metric-label {
+  font-size: 19rpx;
+  font-weight: 400;
+  color: #8d8595;
+}
+.metric-number {
+  margin-top: 6rpx;
+  color: #393047;
+  font-size: 37rpx;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.metric-number text {
+  font-size: 19rpx;
+  color: #8d8595;
+}
+.daily-foot {
+  border: 0;
+  padding: 0;
+}
+.daily-foot .text-button {
+  font-size: 22rpx;
+  color: #8d8595;
+}
+.daily-foot .record-button {
+  height: 60rpx;
+  min-height: 60rpx;
+  width: 175rpx;
+  border-radius: 26rpx;
+  background: #f0eafb;
+  color: #7d64d8;
+  font-size: 22rpx;
+}
+.home-page .section-heading {
+  margin: 33rpx 0 25rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+.home-page .section-heading text + text {
+  font-size: 19rpx;
+  color: #8d8595;
+}
+.home-page .search-box {
+  height: 71rpx;
+  min-height: 0;
+  border-radius: 37rpx;
+  padding: 0 24rpx;
+  background: white;
+}
+.search-image {
+  width: 34rpx;
+  height: 34rpx;
+  flex-shrink: 0;
+}
+.home-page .search-box input {
+  font-size: 22rpx;
+}
+.home-page .category-tabs {
+  margin: 15rpx 0 22rpx;
+  gap: 41rpx;
+}
+.home-page .category-tab {
+  padding: 0 0 8rpx;
+  min-height: 60rpx;
+  font-size: 24rpx;
+  color: #8d8595;
+}
+.home-page .category-tab.active {
+  color: #7d64d8;
+}
+.page button.floating-publish {
+  right: 37rpx;
+  bottom: calc(150rpx + env(safe-area-inset-bottom));
+  width: 187rpx;
+  height: 82rpx;
+}
+.publish-disc {
+  width: 187rpx;
+  height: 82rpx;
+  border-radius: 41rpx;
+  font-size: 22rpx;
+  color: white;
+  background: #7d64d8;
+  box-shadow: none;
+}
+
+// Today is highlighted even when no reminders are scheduled.
+.home-calendar-days .calendar-day.today,
+.home-calendar-days .calendar-day.today.no-reminder,
+.home-calendar-days .calendar-day.today-reminder,
+.home-calendar-days .calendar-day.selected:not(.today-reminder) {
+  background: #e6dbfa;
+  color: #7d64d8;
+}
+.home-calendar-days .calendar-day.today .calendar-week,
+.home-calendar-days .calendar-day.today .calendar-number {
+  color: #7d64d8;
+}
+
+.metric-add { font-size: 22rpx; color: #a49aaa; }
+.metric-pressed { background: #f7f3fc; }
+.daily-foot .device-connect { display: flex; align-items: center; gap: 12rpx; }
+.device-connect .device-dot { flex-shrink: 0; width: 12rpx; height: 12rpx; margin: 0; background: #a49aaa; }
+
+// The entire metric tile is a record action in both empty and filled states.
+.daily-metrics { gap: 20rpx; margin: 24rpx 0 18rpx; }
+.daily-metrics .metric {
+  padding: 18rpx;
+  min-height: 142rpx;
+  border-radius: 22rpx;
+  background: #f8f5fb;
+  overflow: hidden;
+}
+.daily-metrics .metric-label { justify-content: space-between; gap: 8rpx; }
+.daily-metrics .metric-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28rpx;
+  height: 28rpx;
+  border-radius: 50%;
+  color: #9b87bd;
+  font-size: 22rpx;
+  line-height: 1;
+}
+.daily-metrics .metric-number { margin-top: 16rpx; gap: 5rpx; }
+.daily-metrics .metric-empty { color: #8d8595; font-size: 24rpx; line-height: 1.5; font-weight: 400; }
+.daily-metrics .metric-pressed { background: #eee6f8; }

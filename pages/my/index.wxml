@@ -1,75 +1,70 @@
-<view class="page tab-page">
-  <page-header title="宠物" />
+<view class="page tab-page pet-page">
+  <page-header title="我的宠物" />
   <view class="screen-body">
-    <view class="pet-heading">
-      <text class="eyebrow">{{pets.length > 1 ? 'OUR LITTLE WORLD' : 'MY LITTLE WORLD'}}</text>
-      <text class="hero-title">{{pets.length > 1 ? '我们的小天地' : pet ? pet.name + '的小天地' : '它的小天地'}}</text>
-      <text class="caption">吃得开心，玩得尽兴，被好好爱着。</text>
+    <view class="pet-heading"><image class="pet-hero" src="/static/design/pet-hero.webp" mode="aspectFit" /><text class="hero-title">我们的小天地</text><text class="caption">吃得开心，玩得尽兴，
+被好好爱着。</text></view>
+    <button wx:if="{{!pets.length}}" class="first-pet" bindtap="addPet"><p-icon name="plus" tone="primary" size="44" /><view><text>添加你的第一只宠物</text><text class="caption">从认识它开始，建立专属档案</text></view></button>
+    <view wx:else class="pet-family">
+      <view class="family-heading"><text>家里的毛孩子</text><text class="caption">{{pets.length}} 位伙伴</text><button wx:if="{{pets.length > 1}}" class="family-swap" bindtap="switchPet" aria-label="切换宠物"><image src="/static/design/swap.svg" /></button></view>
+      <scroll-view class="family-scroll" scroll-x="{{pets.length > 2}}" enhanced show-scrollbar="{{false}}"><view class="family-row {{pets.length > 2 ? 'family-slider' : ''}}">
+        <view wx:for="{{pets}}" wx:key="id" class="family-card {{pet.id === item.id ? 'active' : ''}}">
+          <button class="family-select" data-id="{{item.id}}" bindtap="selectPet" aria-label="{{item.name + (pet.id === item.id ? '，当前宠物' : '，点击选择')}}"><view wx:if="{{pet.id === item.id}}" class="family-check"><image src="/static/design/check.svg" /><text>当前</text></view><p-image wx:if="{{item.image}}" image-class="family-photo" src="{{item.image}}" /><view wx:else class="family-placeholder"><p-icon name="{{item.type === '狗狗' ? 'dog' : 'cat'}}" size="48" /></view><text class="family-name">{{item.name}}</text></button>
+          <view class="family-info-row"><view class="family-meta"><text>{{item.meta}}</text><text>{{item.weight ? item.weight + ' kg' : '体重待记录'}}</text></view><button class="family-edit" data-id="{{item.id}}" catchtap="editPetCard" aria-label="{{'编辑' + item.name + '的档案'}}"><image src="/static/design/edit.svg" /></button></view>
+        </view>
+        <button wx:if="{{pets.length !== 2}}" class="family-add-card" bindtap="addPet"><image src="/static/design/plus-large.svg" /><text>添加爱宠</text></button>
+      </view></scroll-view>
+      <button wx:if="{{pets.length === 2}}" class="add-family-pet" bindtap="addPet"><image src="/static/design/plus.svg" /><text>添加爱宠</text></button>
     </view>
-    <button wx:if="{{!pets.length}}" class="pet-card" bindtap="editPet">
-      <view class="pet-circle {{pet ? 'has-pet' : ''}}">
-        <p-image wx:if="{{pet.image}}" src="{{pet.image}}" image-class="pet-avatar-photo" /><p-icon wx:else name="{{pet ? (pet.type === '狗狗' ? 'dog' : 'cat') : 'plus'}}" tone="inverse" size="{{pet ? 64 : 42}}" />
-        <view class="pet-badge"><p-icon name="{{pet.type === '狗狗' ? 'dog' : 'cat'}}" tone="accentText" size="30" /></view>
-      </view>
-      <view class="pet-copy">
-        <text class="pet-name">{{pet ? pet.name : '添加你的第一只宠物'}}</text>
-        <text class="pet-meta">{{pet ? (pet.breed || pet.type) + (pet.age_text ? ' · ' + pet.age_text : pet.age !== '' && pet.age != null ? ' · ' + pet.age + ' 岁' : '') + (pet.weight ? ' · ' + pet.weight + ' kg' : '') : '从认识它开始，建立专属档案'}}</text>
-        <text class="pet-edit">{{pet ? '查看 / 编辑档案' : '添加宠物档案'}} ↗</text>
-      </view>
-    </button>
-    <view wx:if="{{pets.length}}" class="pet-family"><view class="family-heading"><text>家里的毛孩子</text><text class="caption">{{pets.length}} 位伙伴 · 轻点切换</text></view><scroll-view class="family-scroll" scroll-x="{{pets.length > 2}}" enhanced show-scrollbar="{{false}}"><view class="family-row {{pets.length > 2 ? 'family-slider' : ''}}"><view wx:for="{{pets}}" wx:key="id" class="family-card {{pet.id === item.id ? 'active' : ''}}"><button class="family-select" data-id="{{item.id}}" bindtap="selectPet" aria-label="{{'选择宠物：' + item.name}}"><view wx:if="{{pet.id === item.id}}" class="family-check"><p-icon name="check" tone="inverse" size="22" /></view><p-image wx:if="{{item.image}}" image-class="family-photo" src="{{item.image}}" /><view wx:else class="family-placeholder"><p-icon name="{{item.type === '狗狗' ? 'dog' : 'cat'}}" tone="accentText" size="48" /></view><text class="family-name">{{item.name}}</text></button><view class="family-info-row"><text class="family-meta" data-id="{{item.id}}" bindtap="selectPet">{{item.meta}}</text><button class="family-edit" size="mini" data-id="{{item.id}}" bindtap="editPetCard" aria-label="{{'编辑' + item.name + '的档案'}}"><p-icon name="edit" size="28" /></button></view></view><button wx:if="{{pets.length > 2 || pets.length % 2 === 1}}" class="family-add-card" bindtap="addPet" aria-label="添加爱宠"><view class="family-add-icon"><p-icon name="plus" tone="inverse" size="36" /></view></button></view></scroll-view></view>
-    <button wx:if="{{pets.length === 2}}" class="add-family-pet" bindtap="addPet" aria-label="添加爱宠"><p-icon name="plus" size="30" /></button>
     <view class="pet-shelves">
       <button data-kind="toys" bindtap="openSupplies">
-        <view class="shelf-icon"><p-icon name="toy" size="48" /></view>
+        <view class="shelf-icon"><image class="shelf-image" src="/static/design/toy.svg" /></view>
         <text>我的玩具</text>
-        <text class="caption">{{toysCount ? toysCount + ' 件陪伴小物' : '收藏它的快乐'}}</text>
-        <text class="shelf-arrow">↗</text>
+        <text class="caption">{{toysCount ? toysCount + ' 件陪伴小物' : '收藏它的快乐 ›'}}</text>
+
       </button>
       <button data-kind="food" bindtap="openSupplies">
-        <view class="shelf-icon"><p-icon name="food" tone="accentText" size="48" /></view>
+        <view class="shelf-icon"><image class="shelf-image" src="/static/design/food.svg" /></view>
         <text>我的食物</text>
-        <text class="caption">{{foodCount ? foodCount + ' 份饮食记录' : '记住喜欢的味道'}}</text>
-        <text class="shelf-arrow">↗</text>
+        <text class="caption">{{foodCount ? foodCount + ' 份饮食记录' : '记住喜欢的味道 ›'}}</text>
+
       </button>
     </view>
     <view class="section-heading parent-heading">
       <text>爸爸妈妈的资料</text>
-      <text>一起照顾它的人</text>
+
     </view>
     <button class="parent-card" bindtap="editParent">
       <p-image wx:if="{{parent.image}}" image-class="parent-avatar" src="{{parent.image}}" mode="aspectFill" />
-      <view wx:else class="parent-avatar"><p-icon name="cat" tone="muted" /></view>
+      <view wx:else class="parent-avatar"><image class="shelf-image" src="/static/design/cat.svg" /></view>
       <view class="parent-copy">
         <text>{{parent.name}}</text>
-        <text class="caption">{{parent.signedIn ? '微信资料 · 编辑昵称' : '登录后，一起照顾它'}}</text>
+        <text class="caption">{{parent.signedIn ? '一起照顾它的人' : '登录后，一起照顾它'}}</text>
       </view>
-      <p-icon name="arrow" tone="muted" size="28" />
+      <image class="parent-arrow" src="/static/design/arrow.svg" />
     </button>
     <view class="profile-links">
-      <button class="menu-row" bindtap="openReminders"><p-icon name="bell" /><view class="row-copy">我的提醒</view><view class="profile-end"><p-icon name="arrow" tone="muted" size="26" /></view></button>
+      <button class="menu-row" bindtap="openReminders"><image class="menu-image" src="/static/design/reminder.svg" /><view class="row-copy">我的提醒</view><view class="profile-end"><text>{{reminderCount}} 项待办</text><image class="menu-arrow" src="/static/design/arrow-small.svg" /></view></button>
       <button class="menu-row" bindtap="openFavorites">
-        <p-icon name="save" />
+        <image class="menu-image" src="/static/design/save.svg" />
         <view class="row-copy">我的收藏</view>
         <view class="profile-end">
-          <text wx:if="{{favoriteCount > 0}}">{{favoriteCount}}</text>
-          <p-icon name="arrow" tone="muted" size="26" />
+          <text wx:if="{{favoriteCount > 0}}">{{favoriteCount}} 篇经验</text>
+          <image class="menu-arrow" src="/static/design/arrow-small.svg" />
         </view>
       </button>
       <button class="menu-row" bindtap="openPosts">
-        <p-icon name="post" />
+        <image class="menu-image" src="/static/design/post.svg" />
         <view class="row-copy">我的帖子</view>
         <view class="profile-end">
-          <text wx:if="{{postCount > 0}}">{{postCount}}</text>
-          <p-icon name="arrow" tone="muted" size="26" />
+          <text>发布与草稿</text>
+          <image class="menu-arrow" src="/static/design/arrow-small.svg" />
         </view>
       </button>
-    </view>
-    <view class="profile-links settings-links">
+
       <button class="menu-row" bindtap="goSettings">
-        <p-icon name="settings" />
+        <image class="menu-image" src="/static/design/settings.svg" />
         <view class="row-copy">设置</view>
-        <p-icon name="arrow" tone="muted" size="26" />
+        <image class="menu-arrow" src="/static/design/arrow-small.svg" />
       </button>
     </view>
   </view>

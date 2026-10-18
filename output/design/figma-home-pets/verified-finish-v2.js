@@ -1,0 +1,23 @@
+(async()=>{
+const home=await figma.getNodeByIdAsync('18:32'),pet=await figma.getNodeByIdAsync('18:217'),source=await figma.getNodeByIdAsync('5:2'),p=figma.currentPage;const changed=[],errors=[],links=[];const all=[home,pet,source,...p.children.filter(n=>n.name.startsWith('交互 / '))];const fonts=new Map();for(const f of all)for(const t of f.findAll(n=>n.type==='TEXT'))for(const s of t.getStyledTextSegments(['fontName']))fonts.set(JSON.stringify(s.fontName),s.fontName);await Promise.all([...fonts.values()].map(f=>figma.loadFontAsync(f)));
+const find=(r,name)=>r.findOne(n=>n.name===name),sheet=name=>p.children.find(n=>n.name==='交互 / '+name);
+for(const root of [home,pet]){const n=root.findOne(n=>n.name==='底部导航');root.appendChild(n);n.x=0;n.y=816;changed.push(n.id);}
+const hc=find(home,'首页完整内容');const pos={'陪伴日历':102,'今日状态':242,'大家都在聊':392,'真实经历，相互陪伴':396,'搜索帖子':426,'帖子分类':472,'瀑布流 / 左列':516,'瀑布流 / 右列':516};for(const [name,y]of Object.entries(pos)){const n=find(hc,name);if(n){n.y=y;changed.push(n.id);}}
+const title=find(hc,'每个日常，\n都值得好好照顾');const font=(await figma.getNodeByIdAsync('7:16')).fontName;title.fontName=font;title.fontSize=22;title.y=4;find(hc,'记录陪伴，也分享生活').y=77;find(pet,'它的小天地').fontName=font;
+// Different image aspect ratios produce a true two-column masonry flow.
+const comp=await figma.getNodeByIdAsync('25:505');const variations=[];for(const [name,h]of [['短图',140],['长图',206]]){let c=p.children.find(n=>n.type==='COMPONENT'&&n.name==='宠物社区 / 帖子卡 / '+name);if(!c){c=comp.clone();p.appendChild(c);c.name='宠物社区 / 帖子卡 / '+name;c.x=2330+variations.length*220;c.y=100;const im=find(c,'帖子图片');im.resize(175,h);changed.push(c.id,...c.findAll(()=>true).map(n=>n.id));}variations.push(c);}
+for(const [col,i]of [['瀑布流 / 左列',0],['瀑布流 / 右列',1]]){for(const [j,n]of find(home,col).children.entries()){n.swapComponent(variations[(i+j)%2]);changed.push(n.id);}}
+async function link(n,dest,overlay=false){if(!n||!dest){errors.push('missing target');return;}try{await n.setReactionsAsync([{trigger:{type:'ON_CLICK'},actions:[{type:'NODE',destinationId:dest.id,navigation:overlay?'OVERLAY':'NAVIGATE',transition:null,resetScrollPosition:false}]}]);links.push({from:n.id,to:dest.id});}catch(e){errors.push(n.name+': '+String(e));}}
+async function close(n){if(!n)return;try{await n.setReactionsAsync([{trigger:{type:'ON_CLICK'},actions:[{type:'CLOSE'}]}]);links.push({from:n.id,close:true});}catch(e){errors.push(String(e));}}
+for(const root of [home,pet,source]){const nav=root.findOne(n=>n.name==='底部导航');for(const tab of nav.children){const target=tab.name==='首页'?home:tab.name==='宠物'?pet:source;if(target.id!==root.id)await link(tab,target);}}
+for(const name of ['＋ 记一下','饮水','进食','排便','饮食记录','状态记录'])await link(find(home,name),sheet('记录本次状态'),true);
+await link(find(home,'历史 ›'),sheet('今日记录历史'),true);await link(find(home,'连接设备 ›'),sheet('我的设备'),true);await link(find(home,'搜索帖子'),sheet('搜索与筛选'),true);await link(find(home,'＋ 发帖'),sheet('发布生活记录'),true);
+for(const n of home.findAll(n=>n.name==='全部提醒 ›'||n.name.startsWith('10月')||n.name.startsWith('◷  今天')))await link(n,sheet('奶糖的提醒'),true);
+for(const n of home.findAll(n=>n.name.startsWith('分类 / ')))await link(n,sheet('搜索与筛选'),true);
+for(const n of home.findAll(n=>n.type==='INSTANCE'&&n.name.startsWith('帖子 / '))){await link(n,sheet('帖子详情'),true);await link(find(n,'收藏'),sheet('已收藏'),true);}
+await link(find(home,'切换宠物'),pet);await link(find(pet,'我的提醒'),sheet('奶糖的提醒'),true);await link(find(pet,'我的收藏'),sheet('已收藏'),true);await link(find(pet,'我的帖子'),sheet('发布生活记录'),true);await link(find(sheet('帖子详情'),'收藏这篇经验'),sheet('已收藏'),true);
+for(const s of p.children.filter(n=>n.name.startsWith('交互 / '))){await close(find(s,'×'));for(const name of ['知道了','返回首页','继续看看','保存本次记录'])await close(find(s,name));}
+await link(find(sheet('我的设备'),'先手动记一下'),sheet('记录本次状态'),true);
+figma.currentPage.selection=[home,pet];figma.viewport.scrollAndZoomIntoView([home,pet]);
+const result={changedNodeIds:changed,links,errors,checks:[home,pet].map(f=>({id:f.id,types:f.findAll(()=>true).reduce((o,n)=>(o[n.type]=(o[n.type]||0)+1,o),{}),fonts:[...new Set(f.findAll(n=>n.type==='TEXT').map(n=>n.fontName.family))],images:f.findAll(n=>'fills'in n&&Array.isArray(n.fills)&&n.fills.some(p=>p.type==='IMAGE')).map(n=>({id:n.id,name:n.name,width:n.width,height:n.height})),scroll:f.findAll(n=>n.type==='FRAME'&&n.overflowDirection==='VERTICAL').map(n=>n.id)}))};figma.showUI('<textarea style="width:98%;height:280px">'+JSON.stringify(result)+'</textarea>',{width:530,height:310});
+})().catch(e=>figma.showUI('<pre>'+String(e)+'\n'+String(e.stack)+'</pre>',{width:600,height:350}));
