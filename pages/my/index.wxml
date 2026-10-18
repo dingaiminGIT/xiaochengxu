@@ -1,7 +1,7 @@
 <view class="page tab-page pet-page">
   <page-header title="我的宠物" />
   <view class="screen-body">
-    <view class="pet-heading"><image class="pet-hero" src="/static/design/pet-hero.webp" mode="aspectFit" /><text class="hero-title">我们的小天地</text><text class="caption">吃得开心，玩得尽兴，
+    <view class="pet-heading"><image class="pet-hero" src="/static/design/pet-hero.png" mode="aspectFit" /><text class="hero-title">我们的小天地</text><text class="caption">吃得开心，玩得尽兴，
 被好好爱着。</text></view>
     <button wx:if="{{!pets.length}}" class="first-pet" bindtap="addPet"><p-icon name="plus" tone="primary" size="44" /><view><text>添加你的第一只宠物</text><text class="caption">从认识它开始，建立专属档案</text></view></button>
     <view wx:else class="pet-family">
