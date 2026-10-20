@@ -4,6 +4,12 @@ import { loadStore, saveStore, accountKey } from './pet-store';
 import config from '../config';
 import request from '../api/request';
 
+export function observationNumber(value) {
+  if (value === null || value === undefined || value === '' || typeof value === 'boolean') return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+}
+
 function recentDailyRecords(petId) {
   return (loadStore().records || [])
     .filter((record) => (record.petId || '') === (petId || ''))
@@ -11,12 +17,14 @@ function recentDailyRecords(petId) {
     .slice(0, 7)
     .map((record) => ({
       day: record.day || '',
-      water_ml: Number.isFinite(Number(record.water)) ? Number(record.water) : null,
-      food_g: Number.isFinite(Number(record.food)) ? Number(record.food) : null,
-      stool_count: Number.isFinite(Number(record.litter)) ? Number(record.litter) : null,
+      water_ml: observationNumber(record.water),
+      food_g: observationNumber(record.food),
+      food_count: observationNumber(record.foodCount),
+      water_count: observationNumber(record.waterCount),
+      stool_count: observationNumber(record.litter),
       litter_notes: (record.litterNotes || []).slice(-10).map((note) => ({
         time: note.time || '',
-        count: Number.isFinite(Number(note.count)) ? Number(note.count) : null,
+        count: observationNumber(note.count),
         shape: note.shape || '',
       })),
     }));
@@ -59,23 +67,142 @@ export function mapChatMessage(message) {
     selectedValues: [],
     riskReasons: (((message.result || {}).risk || {}).reasons || []).join('、'),
     limitedInfo: !!(message.result && message.result.limited_info),
-    candidates: (message.result && message.result.food_candidates) || [],
+    candidates: ((message.result && message.result.food_candidates) || []).map((candidate) => ({
+      ...candidate,
+      strengths: candidate.recommendation_card?.reasons || candidate.strengths || [],
+      cautions: candidate.recommendation_card?.cautions || candidate.cautions || [],
+      stageLabel: candidate.recommendation_card?.life_stage_label || candidate.life_stage || '',
+    })),
     actions: ((message.result && message.result.actions) || []).filter((a) =>
       ['flow_handoff', 'diet_history', 'medical_record'].includes(a.type),
     ),
     recommendationNote: ((message.result || {}).recommendation || {}).note || '',
     healthSubjects: (health.subjects || []).map((subject) => ({
       ...subject,
+      hasPresentation: !!subject.presentation,
+      advantages: subject.presentation?.advantages || [],
+      attentions: subject.presentation?.attentions || [],
+      roleText: (subject.roles || []).map((role) => ({ current: '当前口粮', history: '历史口粮', named: '指定产品', selected: '所选产品' }[role] || '')).filter(Boolean).join(' / '),
       missingText: (subject.missing_dimensions || []).join('、'),
       unmappedText: (subject.unmapped_dimensions || []).join('、'),
       skippedText: (subject.skipped_dimensions || []).join('、'),
     })),
     healthComparisons: health.comparisons || [],
     healthPrompt: health.prompt || '',
+    healthOverview: health.overview || null,
+    healthCoverage: health.coverage_note || '',
+    dailyStatus: (message.result || {}).daily_status || null,
+    canRecordDaily: !!((message.result || {}).daily_status?.pet_profile?.id && (message.result || {}).daily_status?.input_fields?.length),
   };
 }
 
 export const chatMethods = {
+  viewCandidate(event) {
+    if (this.data.sending) return;
+    const { id, index } = event.currentTarget.dataset;
+    const message = this.data.chatMessages.find((item) => item.id === id);
+    const candidate = message?.candidates?.[Number(index)];
+    if (!candidate?.catalog_key) return;
+    this.sendCloudMessage({ interaction: { slot: 'target_food', value: candidate.catalog_key } }, '查看 ' + candidate.brand + ' ' + candidate.product_name);
+  },
+  requestOtherCandidates() {
+    if (!this.data.sending) this.sendCloudMessage({ message: '换一组' }, '换一组');
+  },
+  async openDailyRecord(event) {
+    if (this.data.sending || this.data.dailyRecordSaving || !requireSession()) return;
+    const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
+    const petId = message?.dailyStatus?.pet_profile?.id;
+    if (!petId || petId !== this.data.boundPet?.id) {
+      wx.showToast({ title: '请先切换到这条记录对应的宠物', icon: 'none' });
+      return;
+    }
+    this._dailyRecordPetId = petId;
+    this._dailyRecordAccount = accountKey('assistant');
+    this._dailyRecordVersion = (this._dailyRecordVersion || 0) + 1;
+    const today = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+    const firstDay = new Date(Date.now() + 8 * 3600 * 1000 - 13 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+    setModalData(this, { showDailyRecord: true, dailyRecordToday: today, dailyRecordFirstDay: firstDay, dailyRecordLoading: true, dailyRecordError: '',
+      dailyRecordForm: { day: today, food_count: '', water_count: '', stool_count: '', complete_day: false, source: 'manual' },
+      dailyRecordFields: message.dailyStatus.input_fields,
+    });
+    await this.loadDailyRecordDay(today);
+  },
+  async loadDailyRecordDay(day) {
+    const version = (this._dailyRecordVersion = (this._dailyRecordVersion || 0) + 1);
+    this.setData({ dailyRecordLoading: true, dailyRecordError: '' });
+    try {
+      const response = await api('/cat-profiles/' + encodeURIComponent(this._dailyRecordPetId) + '/daily-records');
+      if (version !== this._dailyRecordVersion || !this.data.showDailyRecord || this._dailyRecordAccount !== accountKey('assistant')) return;
+      const row = (response.items || []).find((item) => item.day === day) || {};
+      this.setData({ dailyRecordForm: { day,
+        food_count: row.food_count == null ? '' : String(row.food_count),
+        water_count: row.water_count == null ? '' : String(row.water_count),
+        stool_count: row.stool_count == null ? '' : String(row.stool_count),
+        complete_day: day < this.data.dailyRecordToday && row.complete_day === true,
+        source: row.source === 'reported_device' ? 'reported_device' : 'manual',
+      } });
+    } catch (error) {
+      if (version === this._dailyRecordVersion && this._dailyRecordAccount === accountKey('assistant')) this.setData({ dailyRecordError: errorText(error) });
+    } finally {
+      if (version === this._dailyRecordVersion) this.setData({ dailyRecordLoading: false });
+    }
+  },
+  changeDailyRecordDay(event) {
+    if (this.data.dailyRecordSaving) return;
+    const day = event.detail.value;
+    if (day < this.data.dailyRecordFirstDay || day > this.data.dailyRecordToday) return;
+    this.setData({ dailyRecordForm: { day, food_count: '', water_count: '', stool_count: '', complete_day: false, source: 'manual' } });
+    return this.loadDailyRecordDay(day);
+  },
+  retryDailyRecord() {
+    return this.loadDailyRecordDay(this.data.dailyRecordForm.day);
+  },
+  inputDailyRecord(event) {
+    if (!['food_count', 'water_count', 'stool_count'].includes(event.currentTarget.dataset.key)) return;
+    this.setData({ ['dailyRecordForm.' + event.currentTarget.dataset.key]: event.detail.value });
+  },
+  changeDailyCoverage(event) {
+    this.setData({ 'dailyRecordForm.complete_day': this.data.dailyRecordForm.day < this.data.dailyRecordToday && event.detail.value === true });
+  },
+  changeDailySource(event) {
+    this.setData({ 'dailyRecordForm.source': Number(event.detail.value) === 1 ? 'reported_device' : 'manual' });
+  },
+  closeDailyRecord() {
+    if (this.data.dailyRecordSaving) return;
+    this._dailyRecordVersion = (this._dailyRecordVersion || 0) + 1;
+    setModalData(this, { showDailyRecord: false });
+  },
+  async saveDailyRecord() {
+    if (this.data.dailyRecordSaving || this.data.dailyRecordLoading || this.data.dailyRecordError || !this.data.showDailyRecord || !requireSession()) return;
+    const account = this._dailyRecordAccount, petId = this._dailyRecordPetId;
+    if (account !== accountKey('assistant') || petId !== this.data.boundPet?.id) return;
+    const form = this.data.dailyRecordForm;
+    const payload = { source: form.source, complete_day: form.day < this.data.dailyRecordToday && form.complete_day === true };
+    for (const key of ['food_count', 'water_count', 'stool_count']) {
+      const text = String(form[key] ?? '').trim();
+      if (text && (!/^\d+$/.test(text) || Number(text) > 999)) {
+        wx.showToast({ title: '次数请填写0～999的整数', icon: 'none' });
+        return;
+      }
+      payload[key] = text ? Number(text) : null;
+    }
+    if (['food_count', 'water_count', 'stool_count'].every((key) => payload[key] === null)) {
+      wx.showToast({ title: '请至少填写一项实际次数', icon: 'none' });
+      return;
+    }
+    this.setData({ dailyRecordSaving: true });
+    try {
+      await api('/cat-profiles/' + encodeURIComponent(petId) + '/daily-records/' + encodeURIComponent(form.day), 'PUT', payload);
+      if (account !== accountKey('assistant') || petId !== this.data.boundPet?.id || !this.data.showDailyRecord) return;
+      setModalData(this, { showDailyRecord: false });
+      wx.showToast({ title: '日常次数已保存', icon: 'success' });
+      await this.sendCloudMessage({ message: '状态解读' }, '查看已更新的日常状态');
+    } catch (error) {
+      if (account === accountKey('assistant')) wx.showToast({ title: errorText(error), icon: 'none' });
+    } finally {
+      if (account === accountKey('assistant')) this.setData({ dailyRecordSaving: false });
+    }
+  },
   useGuardianAction(event) {
     if (this.data.sending) return;
     const { id, index } = event.currentTarget.dataset;

@@ -10,7 +10,8 @@
     "lint:fix-prettier": "prettier ./ --ignore-path .gitignore --ignore-path .eslintignore --ignore-path .prettierignore --write './**/*.{js,ts}' --ignore-unknown",
     "theme": "node scripts/build-theme.js",
     "test:contracts": "node scripts/check-contracts.cjs",
-    "test:health-analysis": "node scripts/check-health-analysis.cjs"
+    "test:health-analysis": "node scripts/check-health-analysis.cjs",
+    "test:guardian-1020": "node scripts/check-guardian-1020.cjs && node scripts/check-history-identities.cjs"
   },
   "keywords": [
     "wechat",
