@@ -50,6 +50,6 @@ const page={...definition,data:{selected:item,subscribing:false},setData(p){Obje
   account='u1';page.data.subscribing=false;page.subscribeResult();await prompt.success({template:'reject'});
   assert.equal(requested[0][2].decision,'reject');
   assert(fs.readFileSync('pages/assistant/index.wxml','utf8').includes('segment.strong'));
-  assert(fs.readFileSync('pages/pet-space/food-submissions.js','utf8').includes('i.processing_status'));
+  assert(fs.readFileSync('pages/pet-space/food-submissions.js','utf8').includes('i.isProcessing'));
   console.log('PASS: emphasis, legacy messages, user text, notification deep link/login recovery, click-time subscription, refusal, account isolation, pipeline polling');
 })().catch(e=>{console.error(e);process.exit(1);});

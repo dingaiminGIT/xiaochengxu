@@ -5,7 +5,9 @@ import { accountKey, cachePetList, currentPet } from '../../utils/pet-store';
 
 Page({
   data: { query: '', items: [], loading: false, error: '', selected: null, savingDiet: false, petName: '' },
-  onLoad() {
+  onLoad(query = {}) {
+    this.petId = query.petId || '';
+    this._account = accountKey('hunting');
     this.search();
   },
   input(e) {
@@ -25,7 +27,7 @@ Page({
     }
   },
   openItem(e) {
-    this.setData({ petName: currentPet()?.name || '' });
+    this.setData({ petName: (this.petId ? '' : currentPet()?.name) || '' });
     this.setData({ selected: this.data.items.find((p) => p.id === e.currentTarget.dataset.id) || null });
   },
   closeDetail() {
@@ -44,14 +46,18 @@ Page({
       return;
     }
     const account = accountKey('hunting');
+    if (this.petId && this._account && account !== this._account) {
+      wx.showToast({ title: '账号已切换，请重新进入口粮清单', icon: 'none' });
+      return;
+    }
     this.setData({ savingDiet: true });
     try {
       const result = await api('/cat-profiles?limit=100');
       if (this._disposed || account !== accountKey('hunting')) return;
       const store = cachePetList((result.items || []).map(mapPet));
-      const pet = currentPet(store);
+      const pet = this.petId ? store.pets.find((item) => item.id === this.petId) : currentPet(store);
       if (!pet) {
-        wx.showToast({ title: '请先添加爱宠', icon: 'none' });
+        wx.showToast({ title: this.petId ? '该宠物档案已不存在' : '请先添加爱宠', icon: 'none' });
         wx.navigateTo({ url: '/pages/pet-space/pet-edit' });
         return;
       }

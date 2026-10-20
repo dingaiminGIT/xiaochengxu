@@ -83,6 +83,22 @@ const page = { ...methods, data: { chatMessages: [message], boundPet: { id: 'pet
   assert.equal(calls.at(-1).chat.interaction.value, 'formula:1');
   page.requestOtherCandidates();
   assert.equal(calls.at(-1).chat.message, '换一组');
+  // The shortcut opens the existing form without generating an unsolicited chat.
+  const chatsBefore = calls.filter((r) => r.chat).length;
+  await page.openStatusGuide();
+  assert.equal(page.data.showDailyRecord, true);
+  assert.equal(calls.filter((r) => r.chat).length, chatsBefore);
+  assert.deepEqual(copy(page.data.dailyRecordFields).map((f) => f.key), ['food_count', 'water_count', 'stool_count']);
+  page.inputDailyDevice({ detail: { value: '智能喂食器 A1' } });
+  await page.saveDailyRecord();
+  assert.ok(calls.at(-1).chat.message.includes('智能喂食器 A1'));
+  assert.ok(calls.at(-1).chat.message.includes('未自动连接'));
+  await page.openStatusGuide();
+  assert.equal(page.data.dailyRecordDevice, '');
+  const beforeCancel = calls.length;
+  page.closeDailyRecord();
+  assert.equal(page.data.showDailyRecord, false);
+  assert.equal(calls.length, beforeCancel);
   const wxml = fs.readFileSync('pages/assistant/index.wxml', 'utf8');
   assert.ok(wxml.indexOf('item.healthOverview') < wxml.indexOf('item.healthSubjects}}'));
   for (const binding of ['openDailyRecord', 'saveDailyRecord', 'viewCandidate', 'requestOtherCandidates']) assert.ok(wxml.includes('bindtap="' + binding + '"'));

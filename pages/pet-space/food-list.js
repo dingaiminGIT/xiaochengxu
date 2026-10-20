@@ -93,6 +93,10 @@ Page({
       if (version === this._version) this.setData({ loading: false });
     }
   },
+  addFood() {
+    if (!requireSession() || !this.data.pet || this.data.loading || this.data.saving) return;
+    wx.navigateTo({ url: '/pages/pet-space/hunting?petId=' + encodeURIComponent(this.data.pet.id) });
+  },
   edit() {
     if (!requireSession() || !this.data.pet || this.data.loading) return;
     this._catalogVersion = (this._catalogVersion || 0) + 1;

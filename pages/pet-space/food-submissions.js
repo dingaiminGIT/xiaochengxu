@@ -84,13 +84,9 @@ Page({
       if (this._active) {
         this.setData({ loading: false });
         clearTimeout(this._poll);
-        if (
-          this.data.items.some(
-            (i) => (['pending', 'processing'].includes(i.recognition_status) ||
-              ['created', 'processing', 'waiting_input'].includes(i.processing_status)) && i.status !== 'cancelled',
-          )
-        )
-          this._poll = setTimeout(() => this.load(), 5000);
+        const pending = [...this.data.items, this.data.selected].filter(Boolean).some((i) => i.isProcessing);
+        if (hasSession() && !this.data.creating && (pending || this.data.error || this._initialId))
+          this._poll = setTimeout(() => this.load(), this.data.error ? 10000 : 5000);
       }
     }
   },
@@ -101,6 +97,7 @@ Page({
     this.setData({ [`form.${e.currentTarget.dataset.key}`]: e.detail.value });
   },
   create() {
+    clearTimeout(this._poll);
     this.setData({ creating: true, selected: null, error: '' });
   },
   reupload() {
@@ -168,6 +165,7 @@ Page({
   async open(e) {
     try {
       await this.readDetail(e.currentTarget.dataset.id);
+      this.load();
     } catch (e) {
       this.setData({ error: errorText(e) });
     }
@@ -180,6 +178,7 @@ Page({
   },
   closeDetail() {
     this.setData({ selected: null, creating: false });
+    this.load();
   },
   subscribeResult() {
     const item = this.data.selected;
@@ -221,7 +220,7 @@ Page({
     if (!item || !item.canCancel || this.data.saving) return;
     wx.showModal({
       title: '撤销这次投稿？',
-      content: '撤销后将停止识别和审核。',
+      content: '撤销后将停止本次投稿处理。',
       success: async (r) => {
         if (!r.confirm) return;
         this.setData({ saving: true });

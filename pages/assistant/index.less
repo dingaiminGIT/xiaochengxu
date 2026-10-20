@@ -1158,7 +1158,7 @@ page {
 
 
 .health-analysis { display: flex; flex-direction: column; gap: @space-md; }
-.health-subject { display: flex; flex-direction: column; gap: @space-sm; }
+.health-subject { display: flex; flex-direction: column; gap: @space-md; padding: @space-lg; border: 1rpx solid @colors-line; border-radius: @radius-small; background: @colors-surface; }
 .health-product { font-size: @type-cardTitle; font-weight: @weight-semibold; line-height: @leading-body; overflow-wrap: break-word; }
 .health-concern { display: flex; flex-direction: column; gap: @space-compact; padding: @space-md 0; border-top: 1rpx solid @colors-line; }
 .health-concern-heading { display: flex; flex-wrap: wrap; align-items: center; gap: @space-compact; }
@@ -1170,10 +1170,20 @@ page {
 .health-detail, .health-observation { display: block; font-size: @type-body; line-height: @leading-body; white-space: pre-line; overflow-wrap: break-word; }
 .health-note { display: block; font-size: @type-caption; color: @colors-secondary; line-height: @leading-body; }
 .health-prompt { font-weight: @weight-semibold; font-size: @type-body; line-height: @leading-body; }
-.health-overview { padding-bottom: @space-md; border-bottom: 1rpx solid @colors-line; }
-.health-section { display: block; font-weight: @weight-semibold; margin-top: @space-sm; }
+.health-overview { margin-bottom: @space-sm; }
+.health-section { display: block; font-size: @type-cardTitle; font-weight: @weight-semibold; margin-top: @space-sm; padding-top: @space-lg; border-top: 1rpx solid @colors-line; }
+.health-point { display: block; }
 .daily-record-sheet { max-height: 78vh; overflow-y: auto; }
 .daily-coverage { display: flex; align-items: center; justify-content: space-between; margin: @space-sm 0; }
 .daily-record-sheet .caption { display: block; margin: @space-xs 0; line-height: 1.5; }
 .daily-record-sheet .record-error { display: block; color: @colors-accentText; font-size: @type-small; }
 .daily-record-entry { margin-top: @space-sm; }
+
+.status-guide-pet { display: inline-block; margin: 12rpx 0; padding: 8rpx 20rpx; border-radius: 24rpx; background: #eee8fa; color: #7460a8; font-size: 24rpx; }
+.status-guide-section { margin-top: 24rpx; padding: 24rpx; background: #f8f6fb; border: 1rpx solid #e8e2ef; border-radius: 24rpx; }
+.status-guide-title { display: block; font-size: 28rpx; font-weight: 600; margin-bottom: 16rpx; }
+.status-guide-section .status-count-field { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; }
+.status-guide-section .status-count-field input { width: 48%; margin-top: 0; background: #fff; }
+.status-guide-section input { min-width: 0; text-align: right; }
+.status-guide-actions { display: flex; gap: 20rpx; margin-top: 28rpx; }
+.status-guide-actions button { flex: 1; width: 0; margin: 0; font-size: 28rpx; }

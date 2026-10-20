@@ -52,9 +52,25 @@ export function messageBlocks(message) {
   });
 }
 
+// Presentation copy comes from the server; never infer nutrition claims here.
+function healthPoints(points) {
+  return (Array.isArray(points) ? points : []).map((point, index) => {
+    const value = typeof point === 'string' ? { text: point } : point || {};
+    return { ...value, id: value.id || String(index), title: value.title || '',
+      summary: value.summary || value.text || '' };
+  });
+}
+
 export function mapChatMessage(message) {
   const interaction = message.interaction || {};
   const health = (message.result || {}).health_analysis || {};
+  const subjects = Array.isArray(health.subjects) ? health.subjects : [];
+  const multiple = subjects.length > 1;
+  const overview = multiple && health.overview ? { ...health.overview,
+    title: health.overview.title || '猫咪的整体饮食解读',
+    advantages: healthPoints(health.overview.advantages),
+    attentions: healthPoints(health.overview.attentions),
+  } : null;
   return {
     ...message,
     text: message.content || message.reply || '',
@@ -77,19 +93,20 @@ export function mapChatMessage(message) {
       ['flow_handoff', 'diet_history', 'medical_record'].includes(a.type),
     ),
     recommendationNote: ((message.result || {}).recommendation || {}).note || '',
-    healthSubjects: (health.subjects || []).map((subject) => ({
+    healthSubjects: subjects.map((subject) => ({
       ...subject,
       hasPresentation: !!subject.presentation,
-      advantages: subject.presentation?.advantages || [],
-      attentions: subject.presentation?.attentions || [],
+      advantages: healthPoints(subject.presentation?.advantages),
+      attentions: healthPoints(subject.presentation?.attentions),
       roleText: (subject.roles || []).map((role) => ({ current: '当前口粮', history: '历史口粮', named: '指定产品', selected: '所选产品' }[role] || '')).filter(Boolean).join(' / '),
       missingText: (subject.missing_dimensions || []).join('、'),
       unmappedText: (subject.unmapped_dimensions || []).join('、'),
       skippedText: (subject.skipped_dimensions || []).join('、'),
     })),
     healthComparisons: health.comparisons || [],
-    healthPrompt: health.prompt || '',
-    healthOverview: health.overview || null,
+    healthPrompt: health.prompt || (subjects.length ? multiple ? '是否需要推荐？' : '你家猫已经在吃这款粮了吗？' : ''),
+    healthMultiple: multiple,
+    healthOverview: overview,
     healthCoverage: health.coverage_note || '',
     dailyStatus: (message.result || {}).daily_status || null,
     canRecordDaily: !!((message.result || {}).daily_status?.pet_profile?.id && (message.result || {}).daily_status?.input_fields?.length),
@@ -97,6 +114,14 @@ export function mapChatMessage(message) {
 }
 
 export const chatMethods = {
+  openDietHistory() {
+    if (this.data.sending || !requireSession()) return;
+    if (!this.data.boundPet?.id) {
+      wx.showToast({ title: '请先选择爱宠', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({ url: '/pages/pet-space/food-list?mode=history&petId=' + encodeURIComponent(this.data.boundPet.id) });
+  },
   viewCandidate(event) {
     if (this.data.sending) return;
     const { id, index } = event.currentTarget.dataset;
@@ -108,10 +133,22 @@ export const chatMethods = {
   requestOtherCandidates() {
     if (!this.data.sending) this.sendCloudMessage({ message: '换一组' }, '换一组');
   },
+  async openStatusGuide() {
+    if (this.data.sending || this.data.dailyRecordSaving || !requireSession()) return;
+    if (!this.data.boundPet?.id) {
+      this._pendingStatusGuide = true;
+      await this.openChatPetPicker();
+      return;
+    }
+    return this.openDailyRecord();
+  },
+  inputDailyDevice(event) {
+    this.setData({ dailyRecordDevice: event.detail.value });
+  },
   async openDailyRecord(event) {
     if (this.data.sending || this.data.dailyRecordSaving || !requireSession()) return;
-    const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
-    const petId = message?.dailyStatus?.pet_profile?.id;
+    const message = event && this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
+    const petId = event ? message?.dailyStatus?.pet_profile?.id : this.data.boundPet?.id;
     if (!petId || petId !== this.data.boundPet?.id) {
       wx.showToast({ title: '请先切换到这条记录对应的宠物', icon: 'none' });
       return;
@@ -123,7 +160,13 @@ export const chatMethods = {
     const firstDay = new Date(Date.now() + 8 * 3600 * 1000 - 13 * 24 * 3600 * 1000).toISOString().slice(0, 10);
     setModalData(this, { showDailyRecord: true, dailyRecordToday: today, dailyRecordFirstDay: firstDay, dailyRecordLoading: true, dailyRecordError: '',
       dailyRecordForm: { day: today, food_count: '', water_count: '', stool_count: '', complete_day: false, source: 'manual' },
-      dailyRecordFields: message.dailyStatus.input_fields,
+      dailyRecordDevice: '',
+      composerFocused: false, keyboardHeight: 0,
+      dailyRecordFields: message?.dailyStatus?.input_fields || [
+        { key: 'food_count', label: '进食', unit: '次' },
+        { key: 'water_count', label: '饮水', unit: '次' },
+        { key: 'stool_count', label: '排便', unit: '次' },
+      ],
     });
     await this.loadDailyRecordDay(today);
   },
@@ -196,7 +239,9 @@ export const chatMethods = {
       if (account !== accountKey('assistant') || petId !== this.data.boundPet?.id || !this.data.showDailyRecord) return;
       setModalData(this, { showDailyRecord: false });
       wx.showToast({ title: '日常次数已保存', icon: 'success' });
-      await this.sendCloudMessage({ message: '状态解读' }, '查看已更新的日常状态');
+      const device = form.source === 'reported_device' ? String(this.data.dailyRecordDevice || '').trim() : '';
+      const message = device ? '状态解读。设备信息（用户手工提供，未自动连接）：' + device : '状态解读';
+      await this.sendCloudMessage({ message }, '查看已更新的日常状态' + (device ? ' · 设备：' + device : ''));
     } catch (error) {
       if (account === accountKey('assistant')) wx.showToast({ title: errorText(error), icon: 'none' });
     } finally {
@@ -309,6 +354,7 @@ export const chatMethods = {
     }
   },
   closeChatPetPicker() {
+    this._pendingStatusGuide = false;
     setModalData(this, { showChatPetPicker: false });
   },
   selectChatPet(e) {
@@ -324,6 +370,10 @@ export const chatMethods = {
     }
     this._selectedChatPetId = pet.id;
     setModalData(this, { boundPet: pet, composerPet: pet, showChatPetPicker: false });
+    if (this._pendingStatusGuide) {
+      this._pendingStatusGuide = false;
+      this.openStatusGuide();
+    }
   },
   addChatPet() {
     this._bindingPet = true;

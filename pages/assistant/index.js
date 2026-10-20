@@ -185,6 +185,7 @@ Page({
       this._cloudConversationId = '';
       this._cloudPetId = '';
       this._selectedChatPetId = '';
+      this._pendingStatusGuide = false;
       this.setData({ composerPet: null, boundPet: null, chatPets: [] });
       if (!this._bindingPet && !this._returningFromLogin) this.setData({ inputMessage: '', composerImages: [] });
       if (this.data.sending) {
@@ -205,7 +206,12 @@ Page({
     this._returningFromLogin = false;
     this._account = account;
     this._bindingPet = false;
-    this.refreshChatPet();
+    this.refreshChatPet().then(() => {
+      if (this._pendingStatusGuide && this.data.boundPet?.id) {
+        this._pendingStatusGuide = false;
+        this.openStatusGuide();
+      }
+    });
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ value: 'assistant' });
     }
@@ -316,6 +322,14 @@ Page({
   useWelcomeShortcut(event) {
     const shortcut = this.data.welcomeShortcuts.find((item) => item.id === event.currentTarget.dataset.id);
     if (!shortcut || this.data.sending) return;
+    if (shortcut.id === 'health') {
+      this.openStatusGuide();
+      return;
+    }
+    if (shortcut.id === 'diet') {
+      this.openDietHistory();
+      return;
+    }
     if (shortcut.id === 'photo') {
       this.onIngredientFound();
       return;
