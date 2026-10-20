@@ -210,12 +210,9 @@ Page({
       day: today,
       petId,
       time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
-      water: Number(previous.water) || 0,
-      food: Number(previous.food) || 0,
-      litter: Number(previous.litter) || 0,
     };
     entries.forEach(({ key, value }) => {
-      record[key] = Math.round((record[key] + value) * 100) / 100;
+      record[key] = Math.round(((Number(record[key]) || 0) + value) * 100) / 100;
     });
     if (entries.some(({ key }) => key === 'litter')) {
       record.litterNotes = [

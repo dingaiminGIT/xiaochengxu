@@ -42,25 +42,37 @@
       </view>
     </view>
     <view class="conversation-thread"><view wx:for="{{chatMessages}}" wx:key="id" class="thread-message {{item.role}} {{item.response_type === 'risk_alert' ? 'risk-message' : ''}}"><view wx:if="{{item.role === 'assistant'}}" class="assistant-label"><view class="reply-avatar"><p-icon name="cat" tone="accentText" size="32" /></view><text>宠物管家</text></view><view wx:if="{{item.images && item.images.length}}" class="message-images"><image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" class="message-image" src="{{img}}" mode="aspectFill" data-current="{{img}}" bindtap="previewComposerImage" /></view><view wx:if="{{item.text || item.riskReasons || item.limitedInfo || item.response_type === 'processing'}}" class="message-body"><view wx:if="{{item.healthSubjects.length}}" class="health-analysis">
+  <view wx:if="{{item.healthOverview}}" class="health-subject health-overview">
+    <text class="health-product" selectable>{{item.healthOverview.title}}</text>
+    <block wx:if="{{item.healthOverview.advantages.length}}"><text class="health-section positive">✅ 好在哪里？</text><text wx:for="{{item.healthOverview.advantages}}" wx:for-item="point" wx:key="id" class="health-detail" selectable>{{point.text}}</text></block>
+    <block wx:if="{{item.healthOverview.attentions.length}}"><text class="health-section attention">❗ 哪里需要留心？</text><text wx:for="{{item.healthOverview.attentions}}" wx:for-item="point" wx:key="id" class="health-detail" selectable>{{point.text}}</text></block>
+    <text wx:for="{{item.healthOverview.unavailable_subjects}}" wx:for-item="name" wx:key="*this" class="health-note">资料不足：{{name}}</text>
+    <text class="health-note" selectable>{{item.healthOverview.note}}</text>
+  </view>
   <view wx:for="{{item.healthSubjects}}" wx:for-item="subject" wx:key="index" class="health-subject">
     <text class="health-product" selectable>{{subject.label}} · 营养健康解读</text>
-    <text wx:if="{{!subject.concerns.length}}" class="health-note" selectable>{{subject.message}}</text>
-    <view wx:for="{{subject.concerns}}" wx:for-item="concern" wx:key="title" class="health-concern">
+    <text wx:if="{{subject.roleText}}" class="health-note">{{subject.roleText}}</text>
+    <block wx:if="{{subject.hasPresentation}}">
+      <block wx:if="{{subject.advantages.length}}"><text class="health-section positive">✅ 好在哪？</text><view wx:for="{{subject.advantages}}" wx:for-item="point" wx:key="title" class="health-concern"><text class="health-title">{{point.title}}</text><text class="health-detail" selectable>{{point.summary}}</text></view></block>
+      <block wx:if="{{subject.attentions.length}}"><text class="health-section attention">❗ 哪里需要留心？</text><view wx:for="{{subject.attentions}}" wx:for-item="point" wx:key="title" class="health-concern"><text class="health-title">{{point.title}}</text><text class="health-detail" selectable>{{point.summary}}</text></view><text class="health-note">{{subject.presentation.note}}</text></block>
+      <text wx:if="{{!subject.advantages.length && !subject.attentions.length}}" class="health-note" selectable>{{subject.message}}</text>
+    </block>
+    <block wx:else><text wx:if="{{!subject.concerns.length}}" class="health-note" selectable>{{subject.message}}</text><view wx:for="{{subject.concerns}}" wx:for-item="concern" wx:key="title" class="health-concern">
       <view class="health-concern-heading"><text class="health-title" selectable>{{concern.title}}</text><text class="health-tag health-tag-{{concern.kind}}">{{concern.tag}}</text></view>
       <text class="health-evidence" selectable>{{concern.evidence_text}}</text>
       <text class="health-detail" selectable>{{concern.mechanism_text}}</text>
       <text class="health-observation" selectable>❗ {{concern.observation_text}}</text>
-    </view>
+    </view></block>
     <text wx:if="{{subject.missingText}}" class="health-note" selectable>资料不足：{{subject.missingText}}</text>
     <text wx:if="{{subject.unmappedText}}" class="health-note" selectable>暂缺对应知识：{{subject.unmappedText}}</text>
-    <text wx:if="{{subject.skippedText}}" class="health-note" selectable>中间档暂不解读：{{subject.skippedText}}</text>
-    <text class="health-note" selectable>{{subject.note}}</text>
+    <text wx:if="{{!subject.hasPresentation && subject.skippedText}}" class="health-note" selectable>中间档暂不解读：{{subject.skippedText}}</text>
+    <text wx:if="{{!subject.hasPresentation}}" class="health-note" selectable>{{subject.note}}</text>
   </view>
   <view wx:for="{{item.healthComparisons}}" wx:for-item="comparison" wx:key="index" class="health-subject">
     <text class="health-product" selectable>{{comparison.left}} 与 {{comparison.right}} · 对比</text>
     <text class="health-detail" selectable>{{comparison.text}}</text>
   </view>
-  <text class="health-prompt">{{item.healthPrompt}}</text>
+  <text wx:if="{{item.healthCoverage}}" class="health-note">{{item.healthCoverage}}</text><text class="health-prompt">{{item.healthPrompt}}</text>
 </view><view wx:elif="{{item.blocks.length}}" class="assistant-blocks"><view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="index" class="assistant-block"><text selectable><text wx:if="{{block.marker}}">{{block.marker}} </text><text wx:for="{{block.segments}}" wx:for-item="segment" wx:key="index" class="{{segment.strong ? 'assistant-emphasis' : ''}}">{{segment.text}}</text></text></view></view><text wx:else selectable>{{item.text}}</text><text wx:if="{{item.riskReasons}}" class="risk-reasons">需要留意：{{item.riskReasons}}</text>
 <text wx:if="{{item.limitedInfo}}" class="chat-limited">信息有限，可补充情况让回答更准确。</text>
 <view wx:if="{{item.response_type === 'processing'}}" class="chat-limited">正在识别食品投稿，可稍后再询问识别结果。</view>
@@ -70,7 +82,8 @@
 <button wx:if="{{item.canInteract && item.response_type === 'multi_select'}}" size="mini" hover-class="chat-option-hover" class="chat-option selected" data-id="{{item.id}}" bindtap="submitChatOptions" disabled="{{sending || !item.selectedValues.length}}">确认选择</button>
 <button wx:if="{{item.canInteract && (item.response_type === 'food_select' || item.response_type === 'text_or_select' || item.response_type === 'ingredient_source')}}" size="mini" hover-class="chat-option-hover" class="chat-option" bindtap="openFoodSubmission" disabled="{{sending}}">手动补充</button>
 </view>
-<view wx:if="{{item.candidates.length && item.result.recommendation.status === 'ready'}}" class="guardian-candidates"><view wx:for="{{item.candidates}}" wx:for-item="candidate" wx:for-index="candidateIndex" wx:key="catalog_key" class="guardian-candidate"><text class="section-title">{{candidate.brand}} {{candidate.product_name}}</text><text class="caption">{{candidate.profile_name}} · 匹配分 {{candidate.fit_score}}</text><text wx:for="{{candidate.strengths}}" wx:for-item="strength" wx:key="*this" class="caption">✅ {{strength}}</text><text wx:for="{{candidate.cautions}}" wx:for-item="caution" wx:key="*this" class="caption">❗ 需留意：{{caution}}</text><button class="chat-option" data-id="{{item.id}}" data-index="{{candidateIndex}}" bindtap="confirmCandidateDiet" disabled="{{sending}}">已开始吃这款，更新口粮</button></view><text class="caption">{{item.recommendationNote}}</text></view>
+<view wx:if="{{item.candidates.length && item.result.recommendation.status === 'ready'}}" class="guardian-candidates"><view wx:for="{{item.candidates}}" wx:for-item="candidate" wx:for-index="candidateIndex" wx:key="catalog_key" class="guardian-candidate"><text class="section-title">{{candidate.brand}} {{candidate.product_name}}</text><text class="caption">{{candidate.stageLabel}} · 结构参考分 {{candidate.fit_score}}</text><text wx:for="{{candidate.strengths}}" wx:for-item="strength" wx:key="*this" class="caption">✅ {{strength}}</text><text wx:for="{{candidate.cautions}}" wx:for-item="caution" wx:key="*this" class="caption">❗ 需留意：{{caution}}</text><button class="chat-option" data-id="{{item.id}}" data-index="{{candidateIndex}}" bindtap="viewCandidate" disabled="{{sending}}">查看详情</button><button class="chat-option" data-id="{{item.id}}" data-index="{{candidateIndex}}" bindtap="confirmCandidateDiet" disabled="{{sending}}">已开始吃这款，更新口粮</button></view><button class="chat-option" bindtap="requestOtherCandidates" disabled="{{sending}}">换一组</button><text class="caption">{{item.recommendationNote}}</text></view>
+<button wx:if="{{item.canRecordDaily}}" class="chat-option daily-record-entry" data-id="{{item.id}}" bindtap="openDailyRecord" disabled="{{sending || dailyRecordSaving}}">记录 / 更新日常次数</button>
 <view wx:if="{{item.actions.length}}" class="chat-options"><button wx:for="{{item.actions}}" wx:for-item="action" wx:for-index="actionIndex" wx:key="type" class="chat-option" data-id="{{item.id}}" data-index="{{actionIndex}}" bindtap="useGuardianAction" disabled="{{sending}}">{{action.type === 'medical_record' ? '补充健康档案' : action.label}}</button></view>
 <button wx:if="{{item.error && item.cloudError}}" class="retry-button" bindtap="retryCloudMessage">重新发送</button><button wx:elif="{{item.error}}" class="retry-button" bindtap="retryMessage">重新发送</button></view><view wx:if="{{sending}}" class="loading-message"><view class="typing-dot"></view><view class="typing-dot"></view><view class="typing-dot"></view><text>正在整理你的问题</text></view></view>
     <view wx:if="{{recognized}}" class="ready-block">
@@ -153,3 +166,18 @@
 
 <view wx:if="{{showChatPetPicker}}" class="sheet-mask" bindtap="closeChatPetPicker"></view>
 <view wx:if="{{showChatPetPicker}}" class="bottom-sheet chat-pet-sheet"><view class="sheet-heading"><text>这次聊聊谁？</text><button bindtap="closeChatPetPicker" aria-label="关闭"><p-icon name="close" /></button></view><text class="caption">选择宠物，让管家了解它的资料。</text><view class="chat-pet-options"><button wx:for="{{chatPets}}" wx:key="id" class="chat-pet-option {{boundPet.id === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectChatPet"><p-image wx:if="{{item.image}}" image-class="chat-pet-photo" src="{{item.image}}" /><view wx:else class="chat-pet-placeholder"><p-icon name="{{item.type === '狗狗' ? 'dog' : 'cat'}}" tone="accentText" size="46" /></view><view class="chat-pet-copy"><text>{{item.name}}</text><text class="caption">{{item.breed || item.type}}</text></view><text wx:if="{{boundPet.id === item.id}}" class="caption">已选择</text></button></view></view>
+
+<view wx:if="{{showDailyRecord}}" class="sheet-mask" bindtap="closeDailyRecord"></view>
+<view wx:if="{{showDailyRecord}}" class="bottom-sheet daily-record-sheet">
+  <view class="sheet-heading"><text>{{boundPet.name}}的日常次数</text><button bindtap="closeDailyRecord" disabled="{{dailyRecordSaving}}" aria-label="关闭"><p-icon name="close" /></button></view>
+  <text class="caption">填写当天截至目前的总次数，重复保存按新值更新，不累加。0表示实际为0，留空表示未知。</text>
+  <view class="form-field"><text>记录日期</text><picker mode="date" start="{{dailyRecordFirstDay}}" end="{{dailyRecordToday}}" value="{{dailyRecordForm.day}}" bindchange="changeDailyRecordDay" disabled="{{dailyRecordSaving}}"><view class="form-value">{{dailyRecordForm.day}}</view></picker></view>
+  <text wx:if="{{dailyRecordLoading}}" class="caption">正在读取这天的记录…</text>
+  <text wx:if="{{dailyRecordError}}" class="record-error">{{dailyRecordError}}，尚未保存。</text><button wx:if="{{dailyRecordError}}" class="chat-option" bindtap="retryDailyRecord" disabled="{{dailyRecordLoading}}">重新读取</button>
+  <view wx:for="{{dailyRecordFields}}" wx:key="key" class="form-field"><text>{{item.label}}（{{item.unit}}）</text><input type="number" maxlength="3" value="{{dailyRecordForm[item.key]}}" data-key="{{item.key}}" bindinput="inputDailyRecord" disabled="{{dailyRecordLoading || dailyRecordSaving || dailyRecordError}}" placeholder="未记录可留空" /></view>
+  <view class="form-field"><text>数据来源</text><picker mode="selector" range="{{dailyRecordSources}}" value="{{dailyRecordForm.source === 'reported_device' ? 1 : 0}}" bindchange="changeDailySource" disabled="{{dailyRecordSaving}}"><view class="form-value">{{dailyRecordForm.source === 'reported_device' ? '设备统计（手工填写）' : '手动记录'}}</view></picker></view>
+  <text class="caption">设备尚未直接接入，可手工填写设备上的统计次数。</text>
+  <view class="daily-coverage"><text>覆盖完整自然日</text><switch checked="{{dailyRecordForm.complete_day}}" disabled="{{dailyRecordForm.day === dailyRecordToday || dailyRecordSaving}}" bindchange="changeDailyCoverage" /></view>
+  <text wx:if="{{dailyRecordForm.day === dailyRecordToday}}" class="caption">今天尚未结束，按截至目前记录。</text>
+  <button class="primary-button" bindtap="saveDailyRecord" loading="{{dailyRecordSaving}}" disabled="{{dailyRecordLoading || dailyRecordSaving || dailyRecordError}}">保存并解读状态</button>
+</view>

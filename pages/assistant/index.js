@@ -125,6 +125,13 @@ Page({
     selectedSymptoms: ['软便敏感', '偶尔黑下巴'],
     symptomOptions: SYMPTOMS.map((label) => ({ label, selected: ['软便敏感', '偶尔黑下巴'].includes(label) })),
     showFoodSheet: false,
+    showDailyRecord: false,
+    dailyRecordLoading: false,
+    dailyRecordSaving: false,
+    dailyRecordError: '',
+    dailyRecordForm: {},
+    dailyRecordFields: [],
+    dailyRecordSources: ['手动记录', '设备统计（手工填写）'],
     foodOptions: [],
     foodTitle: '',
     foodType: 'current',
@@ -186,6 +193,9 @@ Page({
       }
       this.setData({
         sending: false,
+        dailyRecordSaving: false,
+        dailyRecordLoading: false,
+        showDailyRecord: false,
         chatMessages: [],
         recognized: false,
         savedMode: false,
@@ -660,6 +670,7 @@ Page({
     });
   },
   onHide() {
+    this._dailyRecordVersion = (this._dailyRecordVersion || 0) + 1;
     if (this.data.showPetGate) this.resolvePetGate();
     if (this.data.sending) this.stopSending();
     this.saveConversation();
@@ -670,6 +681,7 @@ Page({
       showIngredientSheet: false,
       showExitModal: false,
       showChatPetPicker: false,
+      showDailyRecord: false,
     });
   },
   onUnload() {
