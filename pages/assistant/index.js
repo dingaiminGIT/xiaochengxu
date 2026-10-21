@@ -322,14 +322,6 @@ Page({
   useWelcomeShortcut(event) {
     const shortcut = this.data.welcomeShortcuts.find((item) => item.id === event.currentTarget.dataset.id);
     if (!shortcut || this.data.sending) return;
-    if (shortcut.id === 'health') {
-      this.openStatusGuide();
-      return;
-    }
-    if (shortcut.id === 'diet') {
-      this.openDietHistory();
-      return;
-    }
     if (shortcut.id === 'photo') {
       this.onIngredientFound();
       return;
