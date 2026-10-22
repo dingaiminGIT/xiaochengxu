@@ -1,8 +1,17 @@
+import { shareCard, timelineCard } from '../../utils/share';
 import { displayPostBody } from '../../utils/post-content';
 import { api, mediaUrl, errorText, hasSession, requireSession } from '../../api/miniprogram';
 import { mapPost } from '../../utils/community';
 import { loadStore, saveStore, formatEdited, accountKey } from '../../utils/pet-store';
 Page({
+  onShareAppMessage() {
+    const post = this.data.post;
+    return shareCard(post ? post.title : '来看看这篇养宠记录', '/pages/pet-space/post-detail',
+      { id: this.postId }, post && post.images && post.images[0]);
+  },
+  onShareTimeline() {
+    return timelineCard(this.onShareAppMessage());
+  },
   data: {
     post: null,
     liking: false,

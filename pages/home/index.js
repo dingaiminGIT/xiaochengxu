@@ -1,3 +1,4 @@
+import { shareCard, timelineCard } from '../../utils/share';
 import { calendarDays, remindersOnDate, shiftDate, birthdayCountdown } from '../../utils/reminder-calendar';
 import { localDate, listReminders } from '../../utils/reminders';
 import { refreshCloudReminders } from '../../utils/reminder-api';
@@ -8,6 +9,12 @@ import { errorText, api, hasSession, mapPet } from '../../api/miniprogram';
 import { loadStore, saveStore, dayKey, currentPet, cachePetList, accountKey } from '../../utils/pet-store';
 
 Page({
+  onShareAppMessage() {
+    return shareCard('宠析 · 记录宠物日常，分享养宠经验', '/pages/home/index');
+  },
+  onShareTimeline() {
+    return timelineCard(this.onShareAppMessage());
+  },
   data: {
     categories,
     category: 'all',
@@ -103,7 +110,7 @@ Page({
     const notes = (record && record.litterNotes) || [];
     const litterStatus = notes.length ? notes[notes.length - 1].shape : '';
     this.setData({
-      recordUpdated: record?.time ? `${record.time} 更新 · 手动记录` : '今天还没有记录 · 手动记录',
+      recordUpdated: record?.time ? `${record.time} 更新 · 手动记录` : '今天还没有记录',
       pet: currentPet(),
       calendarDate,
       calendarDays: calendarDays(shiftDate(localDate(), -1), 7, calendarDate, reminders),

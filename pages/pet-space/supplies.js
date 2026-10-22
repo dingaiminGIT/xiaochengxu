@@ -1,3 +1,4 @@
+import { supplyShare, timelineCard } from '../../utils/share';
 import { previewIngredientExample } from '../../utils/preview-ingredient-example';
 import { rememberDiet } from '../../utils/diet-history';
 import { fetchFoodCatalog } from '../../utils/food-catalog';
@@ -48,6 +49,12 @@ function mapLocalFood(p) {
 }
 
 Page({
+  onShareAppMessage() {
+    return supplyShare(this.data.kind, this.data.selected);
+  },
+  onShareTimeline() {
+    return timelineCard(this.onShareAppMessage());
+  },
   data: {
     hasPet: false,
     pets: [],
@@ -80,7 +87,9 @@ Page({
     catalogEditorMode: 'form',
   },
 
-  onLoad(q) {
+  onLoad(q = {}) {
+    this._sharedItemId = q.id || '';
+    this._sharedQuery = q.q || '';
     const kind = q.kind === 'food' ? 'food' : 'toys';
     this.setData({
       kind,
@@ -238,10 +247,10 @@ Page({
     this.setData({ loading: true, error: '', items: [] });
     try {
       const food = this.data.kind === 'food';
-      const r = food ? await fetchFoodCatalog('', 4) : await api('/ideas?limit=100');
+      const r = food ? await fetchFoodCatalog(this._sharedItemId ? this._sharedQuery : '', this._sharedItemId ? 100 : 4) : await api('/ideas?limit=100');
       if (requestId !== this._requestId) return;
       const items = food
-        ? (r.items || []).map(mapFoodItem).slice(0, 4)
+        ? (r.items || []).map(mapFoodItem)
         : (r.items || [])
             .filter((p) => ['PET_TOY', 'OWNER_TOY', 'SMART_DEVICE', 'DAILY_USE'].includes(p.category))
             .map((p) => ({
@@ -256,6 +265,12 @@ Page({
               source: 'idea',
             }));
       this.setData({ items });
+      if (this._sharedItemId) {
+        const selected = items.find((item) => String(item.id) === String(this._sharedItemId));
+        this._sharedItemId = '';
+        this.setData({ selected: selected || null });
+        if (!selected) wx.showToast({ title: '分享的好物已下架或暂不可用', icon: 'none' });
+      }
       if (!food) {
         const featured = items
           .filter((p) => p.image)

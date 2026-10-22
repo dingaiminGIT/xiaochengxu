@@ -51,7 +51,7 @@
 </block>
 </view></scroll-view>
 <view wx:if="{{post && !loading && !reportVisible && !commentsVisible}}" class="detail-actions">
-<button class="comment-entry" bindtap="openComments"><p-icon name="edit" tone="muted" size="32" /><text>说点什么…</text></button>
+<button class="text-button" open-type="share" aria-label="分享给朋友">分享</button><button class="comment-entry" bindtap="openComments"><p-icon name="edit" tone="muted" size="32" /><text>说点什么…</text></button>
 <button class="icon-action social-action" bindtap="toggleLike" disabled="{{liking}}" aria-label="{{post.liked ? '取消点赞' : '点赞'}}"><p-icon name="{{post.liked ? 'heart-filled' : 'heart'}}" tone="{{post.liked ? 'primary' : 'muted'}}" size="40" /><text wx:if="{{post.likes}}">{{post.likes}}</text></button>
 
 <button class="icon-action" bindtap="toggleSave" aria-label="{{saved ? '取消收藏' : '收藏帖子'}}">

@@ -1,3 +1,4 @@
+import { shareCard, timelineCard } from '../../utils/share';
 import { previewIngredientExample } from '../../utils/preview-ingredient-example';
 import { setModalData, syncModalTabBar } from '../../utils/modal-layout';
 import { chatMethods } from '../../utils/assistant-chat';
@@ -106,6 +107,12 @@ function mapMaterialRoles(evidence, fallbackGroups = []) {
 }
 
 Page({
+  onShareAppMessage() {
+    return shareCard('它不会说的，让宠析陪你读懂 · 你的专属养宠管家', '/pages/assistant/index');
+  },
+  onShareTimeline() {
+    return timelineCard(this.onShareAppMessage());
+  },
   data: {
     statusBarHeight: 20,
     compactWelcome: false,

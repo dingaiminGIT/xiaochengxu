@@ -1,12 +1,21 @@
+import { supplyShare, timelineCard } from '../../utils/share';
 import { fetchFoodCatalog, mapCatalogFood } from '../../utils/food-catalog';
 import { api, requireSession, mapPet, errorText } from '../../api/miniprogram';
 
 import { accountKey, cachePetList, currentPet } from '../../utils/pet-store';
 
 Page({
+  onShareAppMessage() {
+    return supplyShare('food', this.data.selected, '/pages/pet-space/hunting');
+  },
+  onShareTimeline() {
+    return timelineCard(this.onShareAppMessage());
+  },
   data: { query: '', items: [], loading: false, error: '', selected: null, savingDiet: false, petName: '' },
   onLoad(query = {}) {
     this.petId = query.petId || '';
+    this._sharedItemId = query.id || '';
+    if (this._sharedItemId) this.setData({ query: query.q || '' });
     this._account = accountKey('hunting');
     this.search();
   },
@@ -17,9 +26,16 @@ Page({
     const request = (this._request = (this._request || 0) + 1);
     this.setData({ loading: true, error: '', items: [], selected: null });
     try {
-      const result = await fetchFoodCatalog(this.data.query, 20);
+      const result = await fetchFoodCatalog(this.data.query, this._sharedItemId ? 100 : 20);
       if (request !== this._request) return;
-      this.setData({ items: (result.items || []).map(mapCatalogFood) });
+      const items = (result.items || []).map(mapCatalogFood);
+      this.setData({ items });
+      if (this._sharedItemId) {
+        const selected = items.find((item) => String(item.id) === String(this._sharedItemId));
+        this._sharedItemId = '';
+        this.setData({ selected: selected || null });
+        if (!selected) wx.showToast({ title: '分享的口粮已下架或暂不可用', icon: 'none' });
+      }
     } catch (e) {
       if (request === this._request) this.setData({ error: errorText(e) });
     } finally {

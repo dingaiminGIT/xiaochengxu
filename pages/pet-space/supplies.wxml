@@ -120,7 +120,7 @@
   <view class="section-heading detail-title">{{selected.name}}</view>
   <text wx:if="{{kind === 'food' && selected.originType}}" class="detail-meta">{{selected.originType}}</text>
   <text class="detail-note">{{kind === 'food' ? selected.displayText : selected.note}}</text>
-  <button class="primary-button" bindtap="addToMine">{{kind === 'food' ? '设为当前口粮' : '加入我的玩具'}}</button>
+<button class="text-button" open-type="share" aria-label="分享给朋友">分享</button>  <button class="primary-button" bindtap="addToMine">{{kind === 'food' ? '设为当前口粮' : '加入我的玩具'}}</button>
 </view>
 
 <view wx:if="{{catalogAdding}}" class="bottom-sheet">
