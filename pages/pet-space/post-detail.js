@@ -1,7 +1,7 @@
 import { shareCard, timelineCard } from '../../utils/share';
 import { displayPostBody } from '../../utils/post-content';
 import { api, mediaUrl, errorText, hasSession, requireSession } from '../../api/miniprogram';
-import { mapPost } from '../../utils/community';
+import { mapPost, reportMomentView } from '../../utils/community';
 import { loadStore, saveStore, formatEdited, accountKey } from '../../utils/pet-store';
 Page({
   onShareAppMessage() {
@@ -69,6 +69,11 @@ Page({
       this.updateOwnership();
       this.setData({ viewerId: hasSession() ? (wx.getStorageSync('miniprogram_user') || {}).id : '' });
       this.loadComments();
+      if (!this._viewReported) {
+        this._viewReported = true;
+        // Statistics must never interrupt reading, prompt login, or count reloads.
+        Promise.resolve().then(() => reportMomentView(post.id)).catch(() => {});
+      }
       // Keep the latest snapshot for locally saved favorites without changing feed order.
       try {
         const s = loadStore();

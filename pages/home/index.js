@@ -72,17 +72,26 @@ Page({
     wx.switchTab({ url: '/pages/my/index' });
   },
   async loadFeed() {
+    const version = (this._feedLoadVersion || 0) + 1;
+    this._feedLoadVersion = version;
+    const category = this.data.category;
+    const isCurrent = () => this._feedLoadVersion === version;
     const silent = this.data.posts.length > 0;
     if (!silent) this.setData({ loading: true, feedError: '' });
     try {
-      await fetchPosts();
+      await fetchPosts(false, {
+        sort: category === 'all' ? 'popular' : 'latest',
+        categoryCode: category === 'all' ? '' : category, isCurrent,
+      });
+      if (!isCurrent()) return;
       this.filterPosts();
       this.setData({ feedError: '' });
     } catch (e) {
+      if (!isCurrent()) return;
       if (!silent) this.setData({ feedError: errorText(e) });
       else wx.showToast({ title: errorText(e), icon: 'none' });
     } finally {
-      if (!silent) this.setData({ loading: false });
+      if (isCurrent()) this.setData({ loading: false });
     }
   },
   openReminders() {
@@ -145,14 +154,17 @@ Page({
     });
   },
   selectCategory(e) {
-    this.setData({ category: e.currentTarget.dataset.id });
-    this.filterPosts();
+    const category = e.currentTarget.dataset.id;
+    if (category === this.data.category) return;
+    this.setData({ category, posts: [] });
+    this.loadFeed();
   },
   onSearch(e) {
     this.setData({ query: e.detail.value });
     this.filterPosts();
   },
   openPost(e) {
+    this._reloadFeedOnShow = true;
     wx.navigateTo({ url: `/pages/pet-space/post-detail?id=${encodeURIComponent(e.detail.id)}` });
   },
   toggleSave(e) {

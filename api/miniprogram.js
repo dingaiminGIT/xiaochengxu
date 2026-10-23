@@ -4,7 +4,8 @@ export const mediaUrl = (url) => (url && url.startsWith('/') ? origin + url : ur
 export const hasSession = () => Boolean(wx.getStorageSync('miniprogram_token'));
 export const errorText = (error) => error.message || '连接失败，请检查网络后重试';
 export function api(path, method = 'GET', data = {}) {
-  if (method !== 'GET' && path !== '/auth/wechat-login' && !hasSession()) {
+  const anonymousView = method === 'POST' && /^\/moments\/[a-zA-Z0-9_-]+\/view$/.test(path);
+  if (method !== 'GET' && path !== '/auth/wechat-login' && !anonymousView && !hasSession()) {
     requireSession();
     return Promise.reject(new Error('请先登录／注册后继续'));
   }

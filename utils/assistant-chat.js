@@ -396,7 +396,7 @@ export const chatMethods = {
   focusChatInput() {
     this.setData({ composerFocused: true });
   },
-  async sendMessage() {
+  async sendMessage({ entryPoint } = {}) {
     if (!requireSession()) return;
     if (this.data.sending || this._checkingPet || (!this.data.inputMessage.trim() && !this.data.composerImages.length))
       return;
@@ -419,7 +419,10 @@ export const chatMethods = {
         this.openFoodSubmission();
         return;
       }
-      return this.sendCloudMessage({ message: this.data.inputMessage.trim() }, this.data.inputMessage.trim());
+      return this.sendCloudMessage({
+        message: this.data.inputMessage.trim(),
+        ...(entryPoint === 'diet_advice' ? { client_context: { entry_point: 'diet_advice' } } : {}),
+      }, this.data.inputMessage.trim());
     } finally {
       this._checkingPet = false;
     }
@@ -494,7 +497,10 @@ export const chatMethods = {
         'POST',
         {
           ...payload,
-          client_context: { recent_daily_records: recentDailyRecords(pet.id), capabilities: { cloud_reminders_v1: true } },
+          client_context: {
+            ...(payload.client_context || {}),
+            recent_daily_records: recentDailyRecords(pet.id), capabilities: { cloud_reminders_v1: true },
+          },
         },
       );
       const response = await this._sendRequest;

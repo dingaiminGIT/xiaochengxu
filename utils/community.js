@@ -14,6 +14,7 @@ export function mapPost(p) {
     userId: p.user_id,
     liked: !!p.liked,
     likes: Number(p.likes) || 0,
+    viewCount: Number(p.view_count) || 0,
     commentCount: Number(p.comment_count ?? p.commentCount) || 0,
     category: p.category_code,
     tag: p.category_name,
@@ -28,9 +29,11 @@ export function mapPost(p) {
     status: p.status === 'active' ? 'published' : 'pending',
   };
 }
-export async function fetchPosts(mine = false) {
-  const res = await api(`/moments?limit=100${mine ? '&include_private=true' : ''}`);
+export async function fetchPosts(mine = false, { sort = 'latest', categoryCode = '', isCurrent = () => true } = {}) {
+  const query = mine ? '&include_private=true' : `&sort=${encodeURIComponent(sort)}${categoryCode ? `&category_code=${encodeURIComponent(categoryCode)}` : ''}`;
+  const res = await api(`/moments?limit=100${query}`);
   const posts = res.items.map(mapPost);
+  if (!isCurrent()) return posts;
   const s = loadStore();
   if (mine) {
     const byId = new Map((s.postCache || []).map((p) => [p.id, p]));
@@ -49,6 +52,15 @@ export async function fetchPosts(mine = false) {
     feedIds: posts.map((p) => p.id),
   });
   return posts;
+}
+export function reportMomentView(postId) {
+  // Persistent installation identity for guest statistics; it grants no access.
+  let visitorId = wx.getStorageSync('moment_view_visitor_id');
+  if (!/^[a-f0-9]{32}$/.test(visitorId || '')) {
+    visitorId = Array.from({ length: 4 }, () => Math.floor(Math.random() * 0x100000000).toString(16).padStart(8, '0')).join('');
+    wx.setStorageSync('moment_view_visitor_id', visitorId);
+  }
+  return api(`/moments/${encodeURIComponent(postId)}/view`, 'POST', { visitor_id: visitorId });
 }
 export function getPosts() {
   const s = loadStore();
