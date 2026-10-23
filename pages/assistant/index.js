@@ -333,7 +333,9 @@ Page({
       this.onIngredientFound();
       return;
     }
-    this.usePrompt({ currentTarget: { dataset: { message: shortcut.prompt } } });
+    this.usePrompt({ currentTarget: { dataset: {
+      message: shortcut.prompt, entryPoint: shortcut.id === 'diet' ? 'diet_advice' : '',
+    } } });
   },
 
   useKeyboardVoice() {
@@ -343,7 +345,7 @@ Page({
 
   usePrompt(event) {
     const message = event.currentTarget.dataset.message || '';
-    this.setData({ inputMessage: message }, () => this.sendMessage());
+    this.setData({ inputMessage: message }, () => this.sendMessage({ entryPoint: event.currentTarget.dataset.entryPoint }));
   },
 
   openIngredientSheet() {
