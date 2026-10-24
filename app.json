@@ -70,6 +70,11 @@
       "root": "pages/analysis",
       "name": "analysis",
       "pages": ["index"]
+    },
+    {
+      "root": "pages/devices",
+      "name": "devices",
+      "pages": ["index", "policy"]
     }
   ],
   "window": {

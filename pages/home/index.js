@@ -1,3 +1,4 @@
+import { deviceRequest } from '../../utils/device-api';
 import { shareCard, timelineCard } from '../../utils/share';
 import { calendarDays, remindersOnDate, shiftDate, birthdayCountdown } from '../../utils/reminder-calendar';
 import { localDate, listReminders } from '../../utils/reminders';
@@ -30,6 +31,7 @@ Page({
     recordTitle: '记一下',
     showRecord: false,
     showDevices: false,
+    deviceCount: 0, deviceLoading: false, deviceError: '',
     form: { water: '', food: '', litter: '', litterShape: '' },
   },
   onLoad() {
@@ -37,6 +39,7 @@ Page({
   },
   onShow() {
     syncModalTabBar(this);
+    this.loadDeviceSummary();
     if (this.getTabBar()) this.getTabBar().setData({ value: 'home' });
     const store = loadStore();
     cachePetList(store.pets || (store.pet ? [store.pet] : []));
@@ -180,9 +183,16 @@ Page({
   goHistory() {
     wx.navigateTo({ url: '/pages/history/index' });
   },
-  openDevices() {
-    setModalData(this, { showDevices: true });
+  async loadDeviceSummary() {
+    this.setData({ deviceCount: 0, deviceError: '', deviceLoading: hasSession() });
+    if (!hasSession()) return;
+    try { const r = await deviceRequest('/device-bindings'); this.setData({ deviceCount: (r.items || []).filter(d => !d.archived).length }); }
+    catch (_) { this.setData({ deviceError: '设备暂时无法查询，请进入设备页重试' }); }
+    finally { this.setData({ deviceLoading: false }); }
   },
+  openDevices() { setModalData(this, { showDevices: true }); this.loadDeviceSummary(); },
+  goDevices() { this.closeSheet(); wx.navigateTo({ url: '/pages/devices/index' }); },
+  startDeviceBinding() { this.closeSheet(); wx.navigateTo({ url: '/pages/devices/index?add=1' }); },
   openRecord(e) {
     const key = e && e.currentTarget && e.currentTarget.dataset.key;
     const fields = this.data.metrics.filter((item) => !key || item.key === key);

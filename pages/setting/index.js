@@ -19,12 +19,7 @@ Page({
     });
   },
   storage() {
-    wx.showModal({
-      title: '数据与隐私',
-      content:
-        '猫咪档案和已发布帖子保存在服务器。收藏、草稿、玩具、食物、状态记录与聊天历史保存在当前设备。清除小程序数据会移除本地记录。',
-      showCancel: false,
-    });
+    wx.showModal({ title: '数据与隐私', content: '猫咪档案和已发布帖子保存在服务器。收藏、草稿、玩具、食物、状态记录与聊天历史保存在当前设备。清除小程序数据会移除本地记录。设备连接另有知情同意与隐私补充说明。', confirmText: '设备隐私', cancelText: '关闭', success: res => { if (res.confirm) wx.navigateTo({ url: '/pages/devices/policy?kind=privacy' }); } });
   },
   openFeedback() {
     this.setData({ feedbackVisible: true, feedbackFocused: true });
