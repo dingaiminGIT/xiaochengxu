@@ -1187,3 +1187,18 @@ page {
 .status-guide-section input { min-width: 0; text-align: right; }
 .status-guide-actions { display: flex; gap: 20rpx; margin-top: 28rpx; }
 .status-guide-actions button { flex: 1; width: 0; margin: 0; font-size: 28rpx; }
+
+// Requirement 35: one ordered card for each evidence-backed answer section.
+.message-body.knowledge-body { padding: 0; background: transparent; white-space: normal; }
+.knowledge-answer { display: flex; flex-direction: column; gap: 18rpx; }
+.knowledge-card { padding: 24rpx; border: 1rpx solid @colors-line; border-radius: 28rpx; background: @colors-surface; box-shadow: 0 4rpx 14rpx fade(@colors-primary, 3%); }
+.knowledge-conclusion { background: linear-gradient(120deg, @colors-primarySoft, @colors-surface); border-color: transparent; }
+.knowledge-heading { display: flex; align-items: center; gap: 16rpx; font-size: 30rpx; font-weight: 700; margin-bottom: 12rpx; }
+.knowledge-icon { width: 48rpx; height: 48rpx; flex-shrink: 0; border-radius: 50%; text-align: center; line-height: 48rpx; color: white; background: @colors-primary; font-size: 32rpx; }
+.knowledge-cautions .knowledge-icon { background: #ed7b70; }
+.knowledge-actions .knowledge-icon { background: #51ad90; }
+.knowledge-community .knowledge-icon { background: #6a86eb; }
+.knowledge-content { display: block; font-size: 27rpx; line-height: 1.75; color: @colors-text; word-break: break-word; }
+.knowledge-questions { display: flex; flex-wrap: wrap; gap: 12rpx; }
+.knowledge-question { margin: 0; padding: 10rpx 18rpx; background: @colors-primarySoft; color: @colors-primaryText; border-radius: 30rpx; font-size: 25rpx; line-height: 1.5; text-align: left; white-space: normal; }
+.knowledge-review-note { display: block; font-size: 23rpx; line-height: 1.6; color: @colors-secondary; }

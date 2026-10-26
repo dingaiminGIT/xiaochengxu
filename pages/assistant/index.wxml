@@ -1,6 +1,6 @@
 <view class="page chat-layout {{compactWelcome ? 'compact-welcome' : ''}} {{!chatMessages.length ? 'welcome-mode' : 'conversation-mode'}} {{keyboardHeight ? 'keyboard-open' : ''}}" style="{{keyboardHeight ? 'height:calc(100vh - ' + keyboardHeight + 'px)' : ''}}">
   <view class="chat-header"><page-header title="宠物管家" /></view>
-  <view wx:if="{{chatMessages.length}}" class="active-chat-toolbar"><button class="text-button" bindtap="newConversation"><p-icon name="chat-new" size="26" />新建会话</button><button class="text-button" bindtap="openConversationHistory"><p-icon name="history" size="26" />对话记录</button></view>
+  <view wx:if="{{chatMessages.length}}" class="active-chat-toolbar"><button class="text-button new-conversation-button" bindtap="newConversation"><p-icon name="chat-new" size="26" />新建会话</button><button class="text-button history-button" bindtap="openConversationHistory"><p-icon name="history" size="26" />对话记录</button></view>
   <scroll-view class="chat-message-scroll {{chatMessages.length ? 'has-messages' : ''}}" scroll-y scroll-top="{{chatScrollTop}}" scroll-with-animation enhanced show-scrollbar="{{false}}"><view class="content {{!recognized ? 'initial-content' : ''}}">
     <view wx:if="{{savedMode}}" class="saved-card">
         <view class="saved-head">
@@ -41,7 +41,7 @@
         </view>
       </view>
     </view>
-    <view class="conversation-thread"><view wx:for="{{chatMessages}}" wx:key="id" class="thread-message {{item.role}} {{item.response_type === 'risk_alert' ? 'risk-message' : ''}}"><view wx:if="{{item.role === 'assistant'}}" class="assistant-label"><view class="reply-avatar"><p-icon name="cat" tone="accentText" size="32" /></view><text>宠物管家</text></view><view wx:if="{{item.images && item.images.length}}" class="message-images"><image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" class="message-image" src="{{img}}" mode="aspectFill" data-current="{{img}}" bindtap="previewComposerImage" /></view><view wx:if="{{item.healthSubjects.length || item.text || item.riskReasons || item.limitedInfo || item.response_type === 'processing'}}" class="message-body"><view wx:if="{{item.healthSubjects.length}}" class="health-analysis">
+    <view class="conversation-thread"><view wx:for="{{chatMessages}}" wx:key="id" class="thread-message {{item.role}} {{item.response_type === 'risk_alert' ? 'risk-message' : ''}}"><view wx:if="{{item.role === 'assistant'}}" class="assistant-label"><view class="reply-avatar"><p-icon name="cat" tone="accentText" size="32" /></view><text>宠物管家</text></view><view wx:if="{{item.images && item.images.length}}" class="message-images"><image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" class="message-image" src="{{img}}" mode="aspectFill" data-current="{{img}}" bindtap="previewComposerImage" /></view><view wx:if="{{item.healthSubjects.length || item.text || item.riskReasons || item.limitedInfo || item.response_type === 'processing'}}" class="message-body {{item.knowledgeCards.length ? 'knowledge-body' : ''}}"><view wx:if="{{item.healthSubjects.length}}" class="health-analysis">
   <view wx:if="{{item.healthOverview}}" class="health-subject health-overview">
     <text class="health-product" selectable>{{item.healthOverview.title}}</text>
     <block wx:if="{{item.healthOverview.advantages.length}}"><text class="health-section positive">✅ 好在哪里？</text><text wx:for="{{item.healthOverview.advantages}}" wx:for-item="point" wx:key="id" class="health-detail" selectable><text wx:if="{{point.title}}" class="health-title">{{point.title}}：</text>{{point.summary}}</text></block>
@@ -73,6 +73,13 @@
     <text class="health-detail" selectable>{{comparison.text}}</text>
   </view>
   <text wx:if="{{item.healthCoverage}}" class="health-note">{{item.healthCoverage}}</text><text class="health-prompt">{{item.healthPrompt}}</text>
+</view><view wx:elif="{{item.knowledgeCards.length}}" class="knowledge-answer">
+  <view wx:for="{{item.knowledgeCards}}" wx:for-item="card" wx:for-index="cardIndex" wx:key="type" class="knowledge-card knowledge-{{card.type}}">
+    <view class="knowledge-heading"><text class="knowledge-icon">{{card.icon}}</text><text>{{card.title}}</text></view>
+    <view wx:if="{{card.questions.length}}" class="knowledge-questions"><button wx:for="{{card.questions}}" wx:for-item="question" wx:for-index="questionIndex" wx:key="*this" class="knowledge-question" data-id="{{item.id}}" data-card-index="{{cardIndex}}" data-question-index="{{questionIndex}}" bindtap="askKnowledgeQuestion" disabled="{{sending}}">{{question}}</button></view>
+    <rich-text wx:else nodes="{{card.nodes}}" user-select class="knowledge-content" />
+  </view>
+  <text wx:if="{{item.knowledgeNote}}" class="knowledge-review-note">❗ {{item.knowledgeNote}}</text>
 </view><view wx:elif="{{item.blocks.length}}" class="assistant-blocks"><view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="index" class="assistant-block"><text selectable><text wx:if="{{block.marker}}">{{block.marker}} </text><text wx:for="{{block.segments}}" wx:for-item="segment" wx:key="index" class="{{segment.strong ? 'assistant-emphasis' : ''}}">{{segment.text}}</text></text></view></view><text wx:else selectable>{{item.text}}</text><text wx:if="{{item.riskReasons}}" class="risk-reasons">需要留意：{{item.riskReasons}}</text>
 <text wx:if="{{item.limitedInfo}}" class="chat-limited">信息有限，可补充情况让回答更准确。</text>
 <view wx:if="{{item.response_type === 'processing'}}" class="chat-limited">正在识别食品投稿，可在投稿页查看自动更新的结果。</view>
