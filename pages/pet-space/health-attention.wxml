@@ -1,0 +1,15 @@
+<view class="page">
+  <page-header title="健康关注" back />
+  <view class="screen-body health-body">
+    <text class="health-pet">{{pet.name || '当前宠物'}}</text>
+    <text class="caption">设备数据尚未接入健康清洗，当前先展示健康关注方向。</text>
+    <view wx:if="{{loading}}" class="empty-state">正在读取健康关注…</view>
+    <view wx:if="{{error}}" class="empty-state">{{error}}<button class="text-button" bindtap="load">重新加载</button></view>
+    <view wx:for="{{items}}" wx:key="direction_code" class="health-card">
+      <view class="health-card-head"><text class="health-name">{{item.direction_name}}</text><text class="health-status">暂未发现异常</text></view>
+      <text class="health-message">{{item.display_message}}</text>
+      <text class="health-data">{{item.data_sources.length ? '已有数据来源' : '数据积累中'}}</text>
+    </view>
+    <view wx:if="{{notice}}" class="health-notice">{{notice}}</view>
+  </view>
+</view>

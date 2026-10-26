@@ -64,7 +64,7 @@
     {
       "root": "pages/pet-space",
       "name": "pet-space",
-      "pages": ["library", "supplies", "pet-edit", "post-detail", "chat-history", "food-submissions", "hunting", "food-list", "reminders", "reminder-types", "reminder-edit"]
+      "pages": ["library", "supplies", "pet-edit", "post-detail", "chat-history", "food-submissions", "hunting", "food-list", "reminders", "reminder-types", "reminder-edit", "health-attention"]
     },
     {
       "root": "pages/analysis",

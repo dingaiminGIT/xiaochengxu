@@ -183,6 +183,9 @@ Page({
   goHistory() {
     wx.navigateTo({ url: '/pages/history/index' });
   },
+  goHealthAttention() {
+    wx.navigateTo({ url: '/pages/pet-space/health-attention' });
+  },
   async loadDeviceSummary() {
     this.setData({ deviceCount: 0, deviceError: '', deviceLoading: hasSession() });
     if (!hasSession()) return;
