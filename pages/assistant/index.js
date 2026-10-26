@@ -676,6 +676,7 @@ Page({
     wx.removeStorageSync(accountKey('food_change_session_id'));
     this.setData({
       chatMessages: [],
+      chatScrollTop: 0,
       inputMessage: '',
       composerImages: [],
       userMessage: '',

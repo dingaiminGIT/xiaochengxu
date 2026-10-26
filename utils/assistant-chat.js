@@ -52,6 +52,67 @@ export function messageBlocks(message) {
   });
 }
 
+// Build rich-text nodes instead of injecting HTML. Source markup cannot load images or scripts.
+function markdownInline(value) {
+  return String(value).split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*]+\*|\[[^\]]+\]\([^)]*\))/g).filter(Boolean).map((part) => {
+    if (part.startsWith('**') && part.endsWith('**'))
+      return { name: 'strong', children: [{ type: 'text', text: part.slice(2, -2) }] };
+    if (part.startsWith('`') && part.endsWith('`'))
+      return { name: 'code', attrs: { style: 'background:#f2f0fa;padding:2px 4px;border-radius:4px' }, children: [{ type: 'text', text: part.slice(1, -1) }] };
+    if (part.startsWith('*') && part.endsWith('*'))
+      return { name: 'em', children: [{ type: 'text', text: part.slice(1, -1) }] };
+    const link = part.match(/^\[([^\]]+)\]\([^)]*\)$/);
+    return { type: 'text', text: link ? link[1] : part };
+  });
+}
+
+export function knowledgeMarkdown(value) {
+  const nodes = [];
+  let list = null;
+  String(value || '').slice(0, 12000).split(/\r?\n/).forEach((line) => {
+    const bullet = line.match(/^\s*(?:[-*+] |\d+[.)] )(.+)/);
+    if (bullet) {
+      const ordered = /^\s*\d/.test(line);
+      const name = ordered ? 'ol' : 'ul';
+      if (!list || list.name !== name) {
+        list = { name, attrs: { style: 'padding-left:22px;margin:6px 0' }, children: [] };
+        nodes.push(list);
+      }
+      list.children.push({ name: 'li', attrs: { style: 'margin:5px 0' }, children: markdownInline(bullet[1]) });
+    } else {
+      list = null;
+      const heading = line.match(/^#{1,6}\s+(.+)/);
+      const quote = line.match(/^>\s?(.*)/);
+      if (line.trim()) nodes.push({ name: 'p', attrs: { style: heading ? 'font-weight:700;margin:8px 0' : quote ? 'border-left:3px solid #d8d0fa;padding-left:10px;margin:6px 0' : 'margin:6px 0' },
+        children: markdownInline(heading ? heading[1] : quote ? quote[1] : line) });
+    }
+  });
+  return nodes;
+}
+
+const KNOWLEDGE_CARD_META = {
+  conclusion: { title: '先看结论', icon: '✦' }, cautions: { title: '需要注意', icon: '!' },
+  actions: { title: '怎么做', icon: '✓' }, special_cases: { title: '特殊情况', icon: '+' },
+  community: { title: '社区经验', icon: '…' }, related_questions: { title: '大家还在问', icon: '↗' },
+};
+
+export function knowledgeCards(message) {
+  const result = message.result || {};
+  if (message.role !== 'assistant' || result.pipeline !== 'knowledge_qa' || !Array.isArray(result.data)) return [];
+  const seen = new Set();
+  const cards = result.data.slice(0, 6).filter((item) => {
+    if (!item || !KNOWLEDGE_CARD_META[item.type] || seen.has(item.type) || typeof item.content !== 'string') return false;
+    seen.add(item.type);
+    return true;
+  }).map((item) => ({
+    ...KNOWLEDGE_CARD_META[item.type], type: item.type,
+    nodes: knowledgeMarkdown(item.content),
+    questions: item.type === 'related_questions' && Array.isArray(item.questions)
+      ? item.questions.filter((q) => typeof q === 'string' && q.length <= 60).slice(0, 3) : [],
+  }));
+  return cards.sort((a, b) => Object.keys(KNOWLEDGE_CARD_META).indexOf(a.type) - Object.keys(KNOWLEDGE_CARD_META).indexOf(b.type));
+}
+
 // Presentation copy comes from the server; never infer nutrition claims here.
 function healthPoints(points) {
   return (Array.isArray(points) ? points : []).map((point, index) => {
@@ -75,6 +136,8 @@ export function mapChatMessage(message) {
     ...message,
     text: message.content || message.reply || '',
     blocks: messageBlocks(message),
+    knowledgeCards: knowledgeCards(message),
+    knowledgeNote: (message.result || {}).knowledge_qa?.review_note || '',
     interaction: {
       ...interaction,
       options: (interaction.options || []).map((option) => ({ ...option, selected: false })),
@@ -114,6 +177,16 @@ export function mapChatMessage(message) {
 }
 
 export const chatMethods = {
+  askKnowledgeQuestion(event) {
+    if (this.data.sending || !requireSession()) return;
+    const { id, cardIndex, questionIndex } = event.currentTarget.dataset;
+    // Resolve text from the saved answer, not from an arbitrary dataset payload.
+    const message = this.data.chatMessages.find((item) => item.id === id);
+    const question = message?.knowledgeCards?.[Number(cardIndex)]?.questions?.[Number(questionIndex)];
+    if (!question) return;
+    if (this._cloudPetId && this._cloudPetId !== this.data.boundPet?.id) return;
+    return this.sendCloudMessage({ message: question }, question);
+  },
   openDietHistory() {
     if (this.data.sending || !requireSession()) return;
     if (!this.data.boundPet?.id) {
