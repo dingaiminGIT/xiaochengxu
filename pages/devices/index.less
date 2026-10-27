@@ -129,8 +129,9 @@
   height: 84rpx;
 }
 .choice-icon {
-  width: 72rpx;
-  height: 72rpx;
+  width: 48rpx;
+  height: 48rpx;
+  flex-shrink: 0;
 }
 .detail-icon {
   width: 96rpx;
@@ -153,3 +154,47 @@
   width: 96rpx;
   height: 96rpx;
 }
+
+// Brand → device type → authorization, matching the approved Figma flow.
+.binding-flow { background: #faf9f5; color: #302846; }
+.binding-flow .device-body { padding: 32rpx 48rpx 240rpx; gap: 28rpx; }
+.binding-flow .device-title { font-size: 36rpx; font-weight: 400; line-height: 1.5; }
+.binding-flow .device-row > .device-title { font-size: 34rpx; }
+.binding-flow .device-caption { color: #82758e; font-size: 26rpx; }
+.binding-subtitle { font-size: 24rpx; color: #82758e; }
+.binding-steps { display: flex; gap: 12rpx; margin-bottom: 18rpx; }
+.binding-step { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14rpx; color: #82758e; font-size: 22rpx; }
+.step-line { height: 6rpx; border-radius: 4rpx; background: #eae7ef; }
+.binding-step.complete .step-line { background: #7460d9; }
+.binding-step.current { color: #302846; }
+.binding-option { width: 100%; min-height: 140rpx; margin: 0; padding: 24rpx 32rpx; border: 2rpx solid #e6e1eb; border-radius: 28rpx; display: flex; align-items: center; justify-content: space-between; gap: 16rpx; box-sizing: border-box; text-align: left; background: #fff; color: #302846; font-size: 30rpx; line-height: 1.5; }
+.binding-option.selected { background: #f2edfc; border-color: #7460d9; }
+.binding-option[disabled] { background: #f8f7f9; color: #82758e; }
+.option-copy { display: flex; flex-direction: column; gap: 6rpx; flex: 1; min-width: 0; }
+.option-status { flex-shrink: 0; color: #82758e; font-size: 22rpx; }
+.selected .option-status { color: #7460d9; font-size: 34rpx; }
+.binding-hint { color: #82758e; font-size: 22rpx; line-height: 1.5; }
+.binding-flow .device-input, .binding-flow .password-field { min-height: 88rpx; border-radius: 40rpx; font-size: 26rpx; }
+.binding-flow-footer { background: #faf9f5; padding-left: 48rpx; padding-right: 48rpx; }
+.binding-action-row { display: flex; gap: 24rpx; }
+.binding-action-row > button { flex: 1; width: 0; }
+.binding-flow-footer .primary-button, .binding-flow-footer .secondary-button { height: 80rpx; min-height: 80rpx; border-radius: 40rpx; padding: 0 12rpx; font-size: 28rpx; line-height: 1.5; display: flex; align-items: center; justify-content: center; }
+.binding-flow-footer .primary-button { background: #7460d9; }
+.binding-flow-footer .primary-button[disabled] { background: #e4dfeb; color: #82758e; }
+.binding-flow-footer .secondary-button { background: #eee8f7; color: #7460d9; }
+.binding-flow-footer .binding-skip { justify-content: center; margin-top: 16rpx; color: #82758e; font-size: 22rpx; }
+
+// Keep authorization details together without the page-level section gaps.
+.authorization-info { display: flex; flex-direction: column; gap: 4rpx; }
+.authorization-info .device-notice { margin-bottom: 12rpx; padding: 20rpx 24rpx; border-radius: 24rpx; }
+.authorization-info .device-link { min-height: 52rpx; font-size: 24rpx; }
+.authorization-consent { align-items: center; min-height: 64rpx; gap: 8rpx; font-size: 24rpx; }
+.authorization-consent checkbox { flex-shrink: 0; width: 40rpx; height: 40rpx; transform: scale(.72); transform-origin: left center; }
+.device-choice { flex-direction: row; align-items: center; gap: 20rpx; padding: 28rpx; }
+.choice-copy { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.choice-status { flex-shrink: 0; }
+.binding-success-summary { display: flex; flex-direction: column; align-items: center; gap: 16rpx; padding: 28rpx 0 12rpx; text-align: center; }
+.binding-success-summary .success-icon { margin-bottom: 8rpx; }
+.device-list-heading .list-refresh { flex-shrink: 0; min-height: 64rpx; padding-left: 20rpx; font-size: 24rpx; }
+.device-filter-note { display: flex; align-items: center; flex-wrap: wrap; color: @colors-primaryText; font-size: 24rpx; line-height: 1.6; }
+.device-filter-note .device-link { display: inline-flex; min-height: 56rpx; font-size: inherit; }

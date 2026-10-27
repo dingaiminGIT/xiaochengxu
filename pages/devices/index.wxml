@@ -1,26 +1,34 @@
-<view class="page has-page-actions device-page">
+<view class="page has-page-actions device-page {{step ? 'binding-flow' : ''}}">
   <page-header title="{{title}}" back customBack bind:back="back" />
   <view class="device-body">
     <view wx:if="{{error}}" class="device-notice error" role="alert"><text>{{error}}</text><button wx:if="{{errorCode === 'LOGIN_REQUIRED'}}" class="text-button" bindtap="loginApp">登录后继续</button><button wx:if="{{errorCode === 'AUTH_EXPIRED'}}" class="text-button" bindtap="reauthenticate">重新连接小佩</button></view>
+    <block wx:if="{{step}}">
+      <text class="binding-subtitle">连接已有设备，了解宠物日常变化</text>
+      <view class="binding-steps"><view wx:for="{{steps}}" wx:key="*this" class="binding-step {{step > index ? 'complete' : ''}} {{index === step - 1 ? 'current' : ''}}"><view class="step-line"></view><text>{{item}}</text></view></view>
+    </block>
     <block wx:if="{{stage === 'brand'}}">
-      <text class="device-title">选择设备品牌</text><text class="device-caption">请先在品牌 App 中完成设备添加与配网。</text>
-      <button class="device-card" bindtap="selectBrand" disabled="{{busy}}"><view class="device-row"><text class="device-card-title">PETKIT 小佩</text><p-icon name="arrow" size="28" /></view><text class="device-caption">智能饮水机 / 智能喂食器</text><image class="brand-icon" src="/static/devices/device.svg" mode="aspectFit" /></button>
-      <view class="device-notice">目前支持小佩设备。其他品牌与智能猫砂盆暂未开放。</view><text>连接后可做什么</text><text class="device-caption">查看设备状态与记录
-关联宠物，了解日常变化
-随时解除连接</text>
+      <text class="device-title">你使用的是哪个品牌？</text><text class="device-caption">选择智能设备所属品牌</text>
+      <button wx:for="{{brands}}" wx:key="id" class="binding-option {{selectedBrand === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectBrand" disabled="{{busy || !item.supported}}" aria-label="{{item.name + (!item.supported ? '，暂未开放' : '')}}"><text>{{item.name}}</text><text class="option-status">{{!item.supported ? '暂未开放' : selectedBrand === item.id ? '✓' : '○'}}</text></button>
+      <text class="binding-hint">请先在品牌 App 中完成设备添加与配网。</text>
+    </block>
+    <block wx:elif="{{stage === 'type'}}">
+      <view class="device-row"><text class="device-title">选择需要连接的设备</text><button class="device-link" bindtap="changeBrand" disabled="{{busy}}">更换品牌</button></view>
+      <text class="device-caption">已选择：小佩 PETKIT</text>
+      <button wx:for="{{deviceTypes}}" wx:key="id" class="binding-option {{selectedType === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectType" disabled="{{busy || !item.supported}}"><view class="option-copy"><text>{{item.name}}</text><text class="binding-hint">{{item.description}}</text></view><text class="option-status">{{!item.supported ? '暂未开放' : selectedType === item.id ? '✓' : '○'}}</text></button>
+      <text class="binding-hint">授权后选择账号下的具体设备。可同步的数据以品牌和机型支持为准。</text>
     </block>
     <block wx:elif="{{stage === 'login'}}">
-      <text class="device-title">连接小佩，了解更多</text><text class="device-caption">使用小佩 App 的用户名和密码登录</text>
+      <text class="device-title">连接小佩 PETKIT 账号</text><text class="device-caption">{{selectedTypeName || '小佩设备'}} · 使用小佩 App 账号授权</text>
       <text class="device-label">用户名</text><input class="device-input" value="{{username}}" bindinput="inputUsername" maxlength="128" placeholder="请输入小佩 App 用户名" disabled="{{busy || !ready}}" />
       <text class="device-label">密码</text><view class="password-field"><input value="{{password}}" bindinput="inputPassword" password="{{!showPassword}}" maxlength="256" placeholder="请输入密码" disabled="{{busy || !ready}}" /><button class="text-button" bindtap="togglePassword" aria-label="{{showPassword ? '隐藏密码' : '显示密码'}}">{{showPassword ? '隐藏' : '显示'}}</button></view>
-      <view class="device-notice">用户名和密码仅用于本次验证，宠析不会持久保存。连接后将保存用于查询设备的登录会话凭证。</view>
+      <view class="authorization-info"><view class="device-notice">用户名和密码仅用于本次验证，宠析不会持久保存。连接后将保存用于查询设备的登录会话凭证。</view>
       <button class="device-link" data-kind="notice" bindtap="openPolicy">《小佩设备连接知情同意书》</button><button class="device-link" data-kind="privacy" bindtap="openPolicy">《隐私协议》设备连接说明</button>
-      <checkbox-group bindchange="consent"><label class="device-consent"><checkbox value="accepted" checked="{{accepted}}" disabled="{{busy || !ready}}" color="#7460d9" /><text>我已阅读并知情同意上述说明</text></label></checkbox-group>
+      <checkbox-group bindchange="consent"><label class="device-consent authorization-consent"><checkbox value="accepted" checked="{{accepted}}" disabled="{{busy || !ready}}" color="#7460d9" /><text>我已阅读并知情同意上述说明</text></label></checkbox-group></view>
     </block>
     <block wx:elif="{{stage === 'choose'}}">
-      <text class="device-title">{{candidates.length ? '选择要绑定的设备' : '账号里还没有可用设备'}}</text><text class="device-caption">{{candidates.length ? '请选择一台设备，关联到宠物档案。' : '请确认已在小佩 App 添加设备，并使用相同账号与区域。'}}</text>
-      <button wx:for="{{candidates}}" wx:key="device_id" class="device-card" data-id="{{item.device_id}}" bindtap="choose" disabled="{{busy || !item.supported}}"><view class="device-row"><text class="device-card-title">{{item.name}}</text><text class="device-caption">{{!item.supported ? '暂不支持' : item.binding_id ? '已绑定' : '›'}}</text></view><text class="device-caption">{{item.type === 'water' ? '饮水机 · 按机型提供状态信息' : item.type === 'feeder' ? '喂食器 · 设备级记录' : '暂不支持此设备类型'}}</text><image wx:if="{{item.supported}}" class="choice-icon" src="/static/devices/{{item.type === 'water' ? 'water-choice' : 'food-choice'}}.svg" mode="aspectFit" /></button>
-      <view class="device-notice">设备能力以具体机型为准。设备记录不会覆盖你的手动记录。</view><button class="device-link" bindtap="refreshCandidates" disabled="{{busy}}">重新查询</button><button class="device-link" bindtap="manage">管理连接 / 更换账号</button>
+      <text class="device-title">{{filteredCandidates.length ? '选择要绑定的设备' : '未找到所选类型的设备'}}</text><text class="device-caption">{{filteredCandidates.length ? '请选择一台设备，关联到宠物档案。' : '请确认账号与区域一致，且已在小佩 App 添加所选类型的设备。'}}</text>
+      <button wx:for="{{filteredCandidates}}" wx:key="device_id" class="device-card device-choice" data-id="{{item.device_id}}" bindtap="choose" disabled="{{busy || !item.supported}}"><image wx:if="{{item.supported}}" class="choice-icon" src="/static/devices/{{item.type === 'water' ? 'water-choice' : 'food-choice'}}.svg" mode="aspectFit" /><view class="choice-copy"><text class="device-card-title">{{item.name}}</text><text class="device-caption">{{item.type === 'water' ? '饮水机 · 按机型提供状态信息' : item.type === 'feeder' ? '喂食器 · 设备级记录' : '暂不支持此设备类型'}}</text></view><text class="device-caption choice-status">{{!item.supported ? '暂不支持' : item.binding_id ? '已绑定' : '›'}}</text></button>
+      <view class="device-notice">设备能力以具体机型为准。设备记录不会覆盖你的手动记录。</view><button class="device-link" bindtap="refreshCandidates" disabled="{{busy}}">重新查询</button><button class="device-link" bindtap="changeType" disabled="{{busy}}">更换设备类型</button><button class="device-link" bindtap="manage">管理连接 / 更换账号</button>
     </block>
     <block wx:elif="{{stage === 'confirm'}}">
       <view class="device-card"><text class="device-card-title">{{selected.name}}</text><text class="device-caption">PETKIT · {{selected.type === 'water' ? '饮水机' : '喂食器'}}</text></view>
@@ -28,13 +36,14 @@
       <text>这台设备由谁使用？</text><radio-group bindchange="selectAttribution" class="device-options"><label><radio value="confirmed" checked="{{attribution === 'confirmed'}}" color="#7460d9" />仅{{pets[petIndex].name || '这只宠物'}}使用</label><label><radio value="shared" checked="{{attribution === 'shared'}}" color="#7460d9" />多宠共用</label><label><radio value="unknown" checked="{{attribution === 'unknown'}}" color="#7460d9" />不确定</label></radio-group>
       <view class="device-notice">关联用于管理设备。不确定或多宠共用时，记录不计为单只宠物的个人摄入量。</view>
     </block>
-    <block wx:elif="{{stage === 'success'}}"><image class="success-icon" src="/static/devices/success.svg" mode="aspectFit" /><text class="device-title">设备已绑定</text><text class="device-caption">{{device.name}} · 已关联{{device.pet_name}}</text><view class="device-card"><text class="device-card-title">{{job ? '首次数据同步中…' : device.status_text}}</text><text class="device-caption">绑定成功不代表已有可用数据。你可以先查看设备，稍后回来获取最新记录。</text></view></block>
+    <block wx:elif="{{stage === 'success'}}"><view class="binding-success-summary"><image class="success-icon" src="/static/devices/success.svg" mode="aspectFit" /><text class="device-title">设备已绑定</text><text class="device-caption">{{device.name}} · 已关联{{device.pet_name}}</text></view><view class="device-card"><text class="device-card-title">{{job ? '首次数据同步中…' : device.status_text}}</text><text class="device-caption">绑定成功不代表已有可用数据。你可以先查看设备，稍后回来获取最新记录。</text></view></block>
     <block wx:elif="{{stage === 'list'}}">
-      <text class="device-title">{{allPets ? '全部设备' : currentPetName + '的设备'}}</text><button class="device-link" bindtap="toggleFilter">{{allPets ? '查看当前宠物' : '查看全部设备'}}</button>
+      <view wx:if="{{bindingCount}}" class="device-row device-list-heading"><text class="device-title">{{allPets ? '全部设备' : currentPetName + '的设备'}}</text><button class="device-link list-refresh" bindtap="loadList" disabled="{{busy}}">{{busy ? '刷新中' : '刷新'}}</button></view>
       <text wx:if="{{busy && !items.length}}" class="device-caption">正在读取设备…</text>
-      <view wx:if="{{!visibleItems.length && !busy && !error}}" class="device-empty"><image class="empty-icon" src="/static/devices/empty.svg" mode="aspectFit" /><text>还没有绑定智能设备</text><text class="device-caption">连接小佩设备，把日常记录带到这里。</text></view>
+      <view wx:if="{{!visibleItems.length && !busy && !error}}" class="device-empty"><image class="empty-icon" src="/static/devices/empty.svg" mode="aspectFit" /><text>{{bindingCount ? '这只宠物还没有关联设备' : '让陪伴，多一点了解'}}</text><text class="device-caption">连接小佩设备，把日常记录带到这里。</text></view>
       <button wx:for="{{visibleItems}}" wx:key="id" class="device-card" data-id="{{item.id}}" bindtap="openDetail"><view class="device-row"><text class="device-card-title">{{item.name}}</text><text>›</text></view><text class="device-caption">{{item.pet_name}} · {{item.attribution_text}}</text><text class="device-caption">{{item.status_text}} · {{item.last_sync_text}}</text></button>
-      <view wx:if="{{items.length && !allPets}}" class="device-caption">其他宠物的设备可在“全部设备”中查看。</view><button class="device-link" bindtap="loadList" disabled="{{busy}}">刷新列表</button><button class="device-link" bindtap="manage">小佩账号连接与隐私管理 ›</button>
+      <view wx:if="{{bindingCount}}" class="device-filter-note"><text>{{allPets ? '仅查看当前宠物的设备？' : '其余宠物的设备，'}}</text><button class="device-link" bindtap="toggleFilter">{{allPets ? '查看当前宠物' : '查看全部设备'}}</button></view>
+      <button wx:if="{{!bindingCount}}" class="device-link" bindtap="loadList" disabled="{{busy}}">刷新列表</button><button class="device-link muted-link" bindtap="manage">小佩账号连接与隐私管理 ›</button>
     </block>
     <block wx:elif="{{stage === 'detail'}}">
       <image class="detail-icon" src="/static/devices/{{device.type === 'water' ? 'water-detail' : 'food-detail'}}.svg" mode="aspectFit" /><text class="device-title">{{device.name}}</text><text class="device-caption">{{device.pet_name}} · {{device.attribution_text}}
@@ -48,12 +57,15 @@
     <block wx:elif="{{stage === 'account'}}"><view wx:if="{{connections.length > 1}}"><button wx:for="{{connections}}" wx:key="id" class="device-link" data-id="{{item.id}}" bindtap="selectConnection">小佩连接 {{index + 1}} · {{item.auth_status === 'disconnected' ? '已断开 / 历史管理' : '当前连接'}} {{connection.id === item.id ? '✓' : '›'}}</button></view><view wx:if="{{connection}}" class="device-card"><text class="device-card-title">小佩 PETKIT · {{connection.auth_status === 'connected' ? '已连接' : connection.auth_status === 'expired' ? '连接已失效' : '已断开'}}</text><text class="device-caption">已绑定 {{connection.bound_count}} 台设备</text></view><text wx:else class="device-caption">尚未连接小佩账号</text><view class="device-notice">我们未保存你的用户名和密码。连接期间通过加密的登录会话凭证查询设备。</view><button class="device-link" data-kind="notice" bindtap="openPolicy">查看连接知情同意书</button><button class="device-link" data-kind="privacy" bindtap="openPolicy">查看隐私协议</button><text>断开连接后</text><text class="device-caption">停止所有设备同步并清除会话凭证，不会删除小佩 App 中的设备。</text><checkbox-group bindchange="deleteToggle"><label class="device-consent"><checkbox value="delete" checked="{{deleteHistory}}" color="#7460d9" /><text>同时删除已同步的设备历史</text></label></checkbox-group><button wx:if="{{connection.auth_status === 'expired'}}" class="device-link" bindtap="reauthenticate">重新连接小佩</button></block>
   </view>
 </view>
-<view class="page-action-footer device-footer">
-  <button wx:if="{{stage === 'login'}}" class="primary-button" bindtap="connect" loading="{{busy}}" disabled="{{busy || !ready || !accepted || !username || !password}}">同意并连接小佩账号</button>
+<view class="page-action-footer device-footer {{step ? 'binding-flow-footer' : ''}}">
+  <block wx:if="{{stage === 'brand'}}"><button class="primary-button" bindtap="nextBrand" disabled="{{busy || !selectedBrand}}">下一步</button></block>
+  <view wx:elif="{{stage === 'type'}}" class="binding-action-row"><button class="secondary-button" bindtap="back" disabled="{{busy}}">上一步</button><button class="primary-button" bindtap="nextType" loading="{{busy}}" disabled="{{busy || !selectedType}}">下一步</button></view>
+  <view wx:elif="{{stage === 'login'}}" class="binding-action-row"><button class="secondary-button" bindtap="back" disabled="{{busy}}">上一步</button><button class="primary-button" bindtap="connect" loading="{{busy}}" disabled="{{busy || !ready || !policyAvailable || !accepted || !username || !password}}">同意并连接</button></view>
   <button wx:elif="{{stage === 'confirm'}}" class="primary-button" bindtap="bind" loading="{{busy}}" disabled="{{busy || !pets.length}}">确认绑定</button>
   <block wx:elif="{{stage === 'success'}}"><button class="primary-button" bindtap="viewBound">查看设备</button><button class="device-link" bindtap="viewList">返回我的设备</button></block>
-  <button wx:elif="{{stage === 'list'}}" class="primary-button" bindtap="add">{{items.length ? '添加设备' : '开始绑定'}}</button>
+  <button wx:elif="{{stage === 'list'}}" class="primary-button" bindtap="add" disabled="{{busy || !listLoaded || error}}">{{bindingCount ? '新增绑定' : '开始绑定'}}</button>
   <button wx:elif="{{stage === 'detail'}}" class="primary-button" bindtap="sync" loading="{{busy || job}}" disabled="{{busy || job || device.auth_status !== 'connected' || device.archived}}">{{job ? '同步中…' : '同步数据'}}</button>
   <button wx:elif="{{stage === 'account' && connection}}" class="secondary-button" bindtap="disconnect" loading="{{busy}}" disabled="{{busy}}">{{connection.auth_status === 'disconnected' ? '删除保留的设备历史' : '断开连接并撤回同意'}}</button>
   <button wx:elif="{{stage === 'events'}}" class="secondary-button" bindtap="back">返回设备详情</button>
+  <button wx:if="{{step}}" class="device-link binding-skip" bindtap="skipBinding" disabled="{{busy}}">暂不绑定，继续手动记录</button>
 </view>

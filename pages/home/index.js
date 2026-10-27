@@ -30,7 +30,6 @@ Page({
     recordFields: [],
     recordTitle: '记一下',
     showRecord: false,
-    showDevices: false,
     deviceCount: 0, deviceLoading: false, deviceError: '',
     form: { water: '', food: '', litter: '', litterShape: '' },
   },
@@ -193,9 +192,17 @@ Page({
     catch (_) { this.setData({ deviceError: '设备暂时无法查询，请进入设备页重试' }); }
     finally { this.setData({ deviceLoading: false }); }
   },
-  openDevices() { setModalData(this, { showDevices: true }); this.loadDeviceSummary(); },
-  goDevices() { this.closeSheet(); wx.navigateTo({ url: '/pages/devices/index' }); },
-  startDeviceBinding() { this.closeSheet(); wx.navigateTo({ url: '/pages/devices/index?add=1' }); },
+  openDevices() {
+    if (this._openingDevices) return;
+    this._openingDevices = true;
+    wx.navigateTo({
+      url: '/pages/devices/index',
+      fail: () => {
+        wx.showToast({ title: '设备页面打开失败，请重试', icon: 'none' });
+      },
+      complete: () => { this._openingDevices = false; },
+    });
+  },
   openRecord(e) {
     const key = e && e.currentTarget && e.currentTarget.dataset.key;
     const fields = this.data.metrics.filter((item) => !key || item.key === key);
@@ -266,7 +273,7 @@ Page({
     }
   },
   closeSheet() {
-    setModalData(this, { showRecord: false, showDevices: false });
+    setModalData(this, { showRecord: false });
   },
   onHide() {
     this.closeSheet();

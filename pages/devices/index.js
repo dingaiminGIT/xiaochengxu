@@ -5,7 +5,8 @@ import { deviceRequest, presentDevice, deviceTime, NOTICE_VERSION, PRIVACY_VERSI
 const titles = {
   list: '我的设备',
   brand: '绑定智能设备',
-  login: '连接小佩账号',
+  type: '绑定智能设备',
+  login: '绑定智能设备',
   choose: '选择设备',
   confirm: '确认绑定',
   success: '绑定成功',
@@ -15,8 +16,14 @@ const titles = {
 };
 Page({
   data: {
+    // The server currently exposes PETKIT only; do not invent a brand-list endpoint.
+    brands: [{ id: 'petkit', name: '小佩 PETKIT', supported: true }, { id: 'homerunpet', name: '霍曼 HOMERUNPET', supported: false }, { id: 'other', name: '其他品牌', supported: false }],
+    deviceTypes: [{ id: 'water', name: '智能饮水机', description: '设备状态与净水数据，具体以机型为准', supported: true }, { id: 'feeder', name: '智能喂食器', description: '进食与出粮记录，具体以机型为准', supported: true }, { id: 'litter', name: '智能猫砂盆', description: '暂未开放', supported: false }],
+    selectedBrand: '', selectedType: '', selectedTypeName: '', filteredCandidates: [],
+    bindingCount: 0, listLoaded: false, step: 0,
+    steps: ['选择品牌', '选择设备', '授权连接'],
     stage: 'list',
-    title: titles.list,
+    title: '绑定智能设备',
     busy: false,
     loading: false,
     error: '',
@@ -62,6 +69,7 @@ Page({
       this._history = [];
       this.setData({
         busy: false,
+        selectedBrand: '', selectedType: '', selectedTypeName: '', filteredCandidates: [], bindingCount: 0, listLoaded: false,
         items: [],
         visibleItems: [],
         connections: [],
@@ -95,7 +103,7 @@ Page({
   },
   go(stage, remember = true) {
     if (remember && this.data.stage !== stage) this._history.push(this.data.stage);
-    this.setData({ stage, title: titles[stage], error: '', errorCode: '' });
+    this.setData({ stage, step: ({ brand: 1, type: 2, login: 3 })[stage] || 0, title: stage === 'list' && !this.data.bindingCount ? '绑定智能设备' : titles[stage], error: '', errorCode: '' });
   },
   back() {
     if (this.data.busy) return;
@@ -135,7 +143,10 @@ Page({
     });
   },
   filterItems() {
+    const bindingCount = this.data.items.filter((d) => !d.archived).length;
     this.setData({
+      bindingCount, listLoaded: true,
+      ...(this.data.stage === 'list' ? { title: bindingCount ? titles.list : '绑定智能设备' } : {}),
       visibleItems: this.data.items.filter(
         (d) => this.data.allPets || !this.data.currentPetId || String(d.pet_id) === String(this.data.currentPetId),
       ),
@@ -146,36 +157,74 @@ Page({
     this.filterItems();
   },
   add() {
+    if (this.data.busy) return;
+    this.setData({ selectedBrand: '', selectedType: '', selectedTypeName: '', candidates: [], filteredCandidates: [], connection: null });
     this.go('brand');
   },
-  async selectBrand() {
-    if (!requireSession()) return;
+  selectBrand(e) {
+    if (this.data.busy) return;
+    const brand = this.data.brands.find((b) => b.id === e.currentTarget.dataset.id);
+    if (!brand || !brand.supported) return;
+    this.setData({ selectedBrand: brand.id, selectedType: '', selectedTypeName: '', connection: null, candidates: [], filteredCandidates: [] });
+  },
+  nextBrand() {
+    if (this.data.busy || this.data.selectedBrand !== 'petkit') return;
+    this.go('type');
+  },
+  selectType(e) {
+    if (this.data.busy) return;
+    const type = this.data.deviceTypes.find((t) => t.id === e.currentTarget.dataset.id && t.supported);
+    if (type) this.setData({ selectedType: type.id, selectedTypeName: type.name });
+  },
+  changeBrand() {
+    if (this.data.busy) return;
+    this.setData({ username: '', password: '', accepted: false });
+    this._history = this._history.filter((s) => !['brand', 'type', 'login', 'choose'].includes(s));
+    this.go('brand', false);
+  },
+  changeType() {
+    if (this.data.busy) return;
+    this.setData({ username: '', password: '', accepted: false });
+    this._history = this._history.filter((s) => !['type', 'login', 'choose'].includes(s));
+    this.go('type', false);
+  },
+  async nextType() {
+    if (this.data.busy || this.data.selectedBrand !== 'petkit' || !['water', 'feeder'].includes(this.data.selectedType)) return;
     return this.run(async (valid) => {
       const r = await deviceRequest('/device-connections');
       if (!valid()) return;
       const active = (r.items || []).find((c) => c.auth_status === 'connected');
       this.setData({ connections: r.items || [], connection: active || null });
+      // An already-authorized account can reuse its connection without collecting credentials again.
       if (active) {
         const devices = await deviceRequest(`/device-connections/${active.id}/devices`);
-        if (valid()) {
-          this.setData({ candidates: devices.items || [] });
-          this.go('choose');
-        }
+        if (!valid()) return;
+        this.setCandidates(devices.items || []);
+        this.go('choose');
       } else {
         this.go('login');
         await this.loadReadiness();
       }
     });
   },
+  setCandidates(items) {
+    this.setData({ candidates: items, filteredCandidates: items.filter((d) => !this.data.selectedType || d.type === this.data.selectedType) });
+  },
+  skipBinding() {
+    if (this.data.busy) return;
+    this.setData({ username: '', password: '', accepted: false });
+    wx.switchTab({ url: '/pages/home/index' });
+  },
   async loadReadiness() {
+    const epoch = this._epoch, token = this._token;
     try {
-      const epoch = this._epoch;
+      this.setData({ ready: false, policyAvailable: false });
       const r = await deviceRequest('/device-capabilities');
-      if (epoch !== this._epoch) return;
+      if (epoch !== this._epoch || token !== wx.getStorageSync('miniprogram_token') || this.data.stage !== 'login') return;
       this.setData({ ready: !!r.enabled, policyAvailable: !!r.policy_available });
       if (!r.enabled) this.setData({ error: r.message || '设备服务尚未开放，请稍后再试', errorCode: 'UNAVAILABLE' });
     } catch (e) {
-      this.setData({ ready: false, error: e.message });
+      if (epoch === this._epoch && token === wx.getStorageSync('miniprogram_token') && this.data.stage === 'login') this.setData({ ready: false, policyAvailable: false, error: e.message });
     }
   },
   inputUsername(e) {
@@ -194,7 +243,7 @@ Page({
     wx.navigateTo({ url: `/pages/devices/policy?kind=${e.currentTarget.dataset.kind || 'notice'}` });
   },
   async connect() {
-    if (!this.data.ready || !this.data.accepted || !this.data.username.trim() || !this.data.password) return;
+    if (!this.data.policyAvailable || !this.data.ready || !this.data.accepted || !this.data.username.trim() || !this.data.password) return;
     await this.run(async (valid) => {
       const data = {
         username: this.data.username.trim(),
@@ -211,15 +260,17 @@ Page({
         data.password = '';
       }
       if (!valid()) return;
-      this.setData({ connection: result.item, candidates: result.devices || [] });
+      this.setData({ connection: result.item });
+      this.setCandidates(result.devices || []);
       this.go('choose');
     });
   },
   refreshCandidates() {
+    if (!this.data.connection?.id) return;
     return this.run(async (valid) => {
       const r = await deviceRequest(`/device-connections/${this.data.connection.id}/devices/refresh`, 'POST');
       if (valid()) {
-        this.setData({ candidates: r.items || [] });
+        this.setCandidates(r.items || []);
         this.go('choose', false);
       }
     });
@@ -230,7 +281,7 @@ Page({
   },
   async choose(e) {
     const item = this.data.candidates.find((c) => c.device_id === e.currentTarget.dataset.id);
-    if (!item || !item.supported) return;
+    if (this.data.busy || !item || !item.supported || (this.data.selectedType && item.type !== this.data.selectedType)) return;
     if (item.binding_id) {
       this.openDetailById(item.binding_id);
       return;
