@@ -1,10 +1,4 @@
-import {
-  reminderTypes,
-  repeatOptions,
-  listReminders,
-  localDate,
-  localTime,
-} from '../../utils/reminders';
+import { reminderTypes, repeatOptions, listReminders, localDate, localTime } from '../../utils/reminders';
 import { refreshCloudReminders, saveCloudReminder, deleteCloudReminder } from '../../utils/reminder-api';
 import { loadStore, currentPet, accountKey, cachePetList } from '../../utils/pet-store';
 import { api, hasSession, mapPet } from '../../api/miniprogram';
@@ -18,6 +12,9 @@ Page({
     time: '',
     today: localDate(),
     repeatIndex: 0,
+    repeatId: 'none',
+    weekdayIndex: -1,
+    weekdayLabels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
     repeatLabels: repeatOptions.map((r) => r.label),
     petId: '',
     petName: '',
@@ -46,6 +43,8 @@ Page({
       icon: type.icon,
       date: item ? localDate(item.dueAt) : /^\d{4}-\d{2}-\d{2}$/.test(q.date || '') ? q.date : '',
       time: item ? localTime(item.dueAt) : '',
+      repeatId: item?.repeat || 'none',
+      weekdayIndex: item?.repeat === 'weekly' ? (new Date(item.dueAt).getDay() + 6) % 7 : -1,
       repeatIndex: Math.max(
         0,
         repeatOptions.findIndex((r) => r.id === item?.repeat),
@@ -58,7 +57,9 @@ Page({
     this.loadPets();
   },
   onShow() {
-    refreshCloudReminders().catch(() => { /* Cached edit remains available; writes report failures. */ });
+    refreshCloudReminders().catch(() => {
+      /* Cached edit remains available; writes report failures. */
+    });
   },
   async loadPets() {
     if (!hasSession()) return;
@@ -79,7 +80,11 @@ Page({
     this.setData({ [e.currentTarget.dataset.key]: e.detail.value });
   },
   repeat(e) {
-    this.setData({ repeatIndex: Number(e.detail.value) });
+    const repeatIndex = Number(e.detail.value);
+    this.setData({ repeatIndex, repeatId: repeatOptions[repeatIndex].id });
+  },
+  weekday(e) {
+    this.setData({ weekdayIndex: Number(e.detail.value) });
   },
   choosePet() {
     this.setData({ petPicker: true });
@@ -99,7 +104,9 @@ Page({
     }
     this.setData({ saving: true });
     try {
-      await saveCloudReminder({ ...this.data, repeat: repeatOptions[this.data.repeatIndex].id }, this._requestKey);
+      const repeat = repeatOptions[this.data.repeatIndex].id;
+      const weekday = this.data.weekdayIndex >= 0 ? (this.data.weekdayIndex + 1) % 7 : -1;
+      await saveCloudReminder({ ...this.data, repeat, weekday }, this._requestKey);
       if (this._disposed || this._account !== accountKey('reminders')) return;
       wx.showToast({ title: '提醒已保存' });
       wx.navigateBack();

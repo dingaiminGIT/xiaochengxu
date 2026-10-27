@@ -2,6 +2,7 @@ import { previewIngredientExample } from '../../utils/preview-ingredient-example
 import { requireSession, hasSession, api, login, errorText, downloadPetImage } from '../../api/miniprogram';
 import { accountKey } from '../../utils/pet-store';
 import { submitFood, submissionView } from '../../utils/food-submission';
+
 Page({
   data: {
     items: [],
@@ -9,16 +10,16 @@ Page({
     creating: false,
     loading: false,
     saving: false,
-    subscribing: false,
+    invalid: {},
     error: '',
     signedOut: false,
     form: { brand: '', product: '', remark: '', images: [] },
-    forChat: false,
   },
   onLoad(q) {
     this._initialId = q.id || '';
     this._entryId = this._initialId;
-    this.setData({ creating: q.create === '1', forChat: q.chat === '1' });
+    this._directCreate = q.create === '1';
+    this.setData({ creating: this._directCreate });
     // A notification can open this page directly, without a navigateTo opener.
     const channel = this.getOpenerEventChannel();
     if (channel && typeof channel.on === 'function')
@@ -47,7 +48,6 @@ Page({
   },
   onHide() {
     this._active = false;
-    clearTimeout(this._poll);
   },
   onUnload() {
     this._disposed = true;
@@ -83,10 +83,6 @@ Page({
       this._loading = false;
       if (this._active) {
         this.setData({ loading: false });
-        clearTimeout(this._poll);
-        const pending = [...this.data.items, this.data.selected].filter(Boolean).some((i) => i.isProcessing);
-        if (hasSession() && !this.data.creating && (pending || this.data.error || this._initialId))
-          this._poll = setTimeout(() => this.load(), this.data.error ? 10000 : 5000);
       }
     }
   },
@@ -94,21 +90,15 @@ Page({
     requireSession();
   },
   input(e) {
-    this.setData({ [`form.${e.currentTarget.dataset.key}`]: e.detail.value });
+    const {key} = e.currentTarget.dataset;
+    const {value} = e.detail;
+    this.setData({
+      [`form.${key}`]: value,
+      ...(value.trim() ? { [`invalid.${key}`]: false } : {}),
+    });
   },
   create() {
-    clearTimeout(this._poll);
-    this.setData({ creating: true, selected: null, error: '' });
-  },
-  reupload() {
-    const item = this.data.selected;
-    if (!item || !item.canReupload || this.data.saving) return;
-    this.setData({
-      creating: true,
-      selected: null,
-      error: '',
-      form: { brand: item.claimed_brand, product: item.claimed_product_name, remark: item.remark || '', images: [] },
-    });
+    this.setData({ creating: true, selected: null, error: '', invalid: {} });
   },
   previewIngredientExample() {
     previewIngredientExample('pages/pet-space/static/ingredient-example.jpg');
@@ -124,7 +114,11 @@ Page({
           wx.showToast({ title: '单张图片不能超过 10MB', icon: 'none' });
           return;
         }
-        this.setData({ 'form.images': [...this.data.form.images, ...r.tempFiles.map((f) => f.tempFilePath)] });
+        if (this._disposed) return;
+        this.setData({
+          'form.images': [...this.data.form.images, ...r.tempFiles.map((f) => f.tempFilePath)],
+          'invalid.images': false,
+        });
       },
     });
   },
@@ -136,28 +130,54 @@ Page({
   },
   async preview(e) {
     try {
-      const url = e.currentTarget.dataset.url;
+      const {url} = e.currentTarget.dataset;
       const local = await downloadPetImage(url);
       wx.previewImage({ current: local, urls: [local] });
     } catch (e) {
       wx.showToast({ title: errorText(e), icon: 'none' });
     }
   },
+  validate() {
+    const { brand, product, images } = this.data.form;
+    const invalid = { brand: !brand.trim(), product: !product.trim(), images: !images.length };
+    this.setData({ invalid });
+    const first = ['brand', 'product', 'images'].find((key) => invalid[key]);
+    if (!first) return true;
+    let title = '请上传配料表照片';
+    if (invalid.brand && invalid.product) title = '请填写品牌和系列 / 产品名称';
+    else if (invalid.brand) title = '请填写品牌';
+    else if (invalid.product) title = '请填写系列 / 产品名称';
+    wx.showToast({ title, icon: 'none' });
+    wx.pageScrollTo({ selector: `#field-${first}`, duration: 200 });
+    return false;
+  },
+  back() {
+    if (!this._directCreate && (this.data.creating || this.data.selected) && !this._entryId) {
+      this.closeDetail();
+    } else if (getCurrentPages().length > 1) wx.navigateBack();
+    else wx.switchTab({ url: '/pages/home/index' });
+  },
   async submit() {
-    if (!requireSession()) return;
-    if (this.data.saving) return;
+    if (this.data.saving || !this.validate() || !requireSession()) return;
+    const account = accountKey('food-submissions');
     this.setData({ saving: true, error: '' });
     try {
       const item = await submitFood(this.data.form);
-      if (this._disposed) return;
+      if (this._disposed || account !== accountKey('food-submissions')) return;
       this.setData({
         creating: false,
-        selected: submissionView(item),
+        selected: null,
+        items: [submissionView(item), ...this.data.items.filter((i) => i.id !== item.id)],
+        invalid: {},
         form: { brand: '', product: '', remark: '', images: [] },
       });
-      this.load();
+      const notify = () => wx.showToast({ title: '投稿成功', icon: 'success' });
+      if (this._directCreate && this._active && getCurrentPages().length > 1) {
+        wx.navigateBack({ success: notify, fail: notify });
+      } else if (this._active) notify();
     } catch (e) {
-      if (this._active) this.setData({ error: errorText(e) });
+      if (this._active && account === accountKey('food-submissions'))
+        wx.showToast({ title: errorText(e), icon: 'none' });
     } finally {
       if (!this._disposed) this.setData({ saving: false });
     }
@@ -165,7 +185,6 @@ Page({
   async open(e) {
     try {
       await this.readDetail(e.currentTarget.dataset.id);
-      this.load();
     } catch (e) {
       this.setData({ error: errorText(e) });
     }
@@ -179,67 +198,5 @@ Page({
   closeDetail() {
     this.setData({ selected: null, creating: false });
     this.load();
-  },
-  subscribeResult() {
-    const item = this.data.selected;
-    const notification = item && item.result_notification;
-    if (!notification || !notification.enabled || this.data.subscribing || !requireSession()) return;
-    if (!wx.requestSubscribeMessage) {
-      wx.showToast({ title: '当前微信版本不支持订阅，请在投稿页查看结果', icon: 'none' });
-      return;
-    }
-    const account = accountKey('food-submissions');
-    this.setData({ subscribing: true });
-    // Invoke inside the user gesture, before any async login/network operation.
-    wx.requestSubscribeMessage({
-      tmplIds: [notification.template_id],
-      success: async (result) => {
-        try {
-          if (account !== accountKey('food-submissions')) return;
-          const decision = result[notification.template_id];
-          if (!['accept', 'reject', 'ban', 'filter'].includes(decision)) throw new Error('未能获取订阅结果，请重试');
-          await api(`/food-submissions/${encodeURIComponent(item.id)}/result-subscription`, 'POST', { decision });
-          if (account !== accountKey('food-submissions') || this._disposed) return;
-          wx.showToast({ title: decision === 'accept' ? '已订阅结果通知' : '未订阅，可在投稿页查看', icon: 'none' });
-        } catch (e) {
-          if (!this._disposed) wx.showToast({ title: errorText(e), icon: 'none' });
-        } finally {
-          if (!this._disposed) this.setData({ subscribing: false });
-        }
-      },
-      fail: () => {
-        if (!this._disposed) {
-          this.setData({ subscribing: false });
-          wx.showToast({ title: '未订阅，可在投稿页查看进度', icon: 'none' });
-        }
-      },
-    });
-  },
-  cancel() {
-    const item = this.data.selected;
-    if (!item || !item.canCancel || this.data.saving) return;
-    wx.showModal({
-      title: '撤销这次投稿？',
-      content: '撤销后将停止本次投稿处理。',
-      success: async (r) => {
-        if (!r.confirm) return;
-        this.setData({ saving: true });
-        try {
-          await api(`/food-submissions/${encodeURIComponent(item.id)}`, 'DELETE');
-          this.setData({ selected: null });
-          await this.load();
-        } catch (e) {
-          this.setData({ error: errorText(e) });
-        } finally {
-          this.setData({ saving: false });
-        }
-      },
-    });
-  },
-  useInChat() {
-    const item = this.data.selected;
-    if (!item || !item.canAnalyze) return;
-    this.getOpenerEventChannel().emit('foodSelected', item);
-    wx.navigateBack();
   },
 });

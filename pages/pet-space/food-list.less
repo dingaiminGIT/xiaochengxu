@@ -46,7 +46,72 @@
 }
 
 // Keep the standalone list canvas uniform through the status bar and content.
-.page.food-list-page { background: @colors-page; }
-.diet-copy .caption { display: block; margin-top: @space-xxs; line-height: 1.5; }
+.page.food-list-page {
+  background: @colors-page;
+}
+.diet-copy .caption {
+  display: block;
+  margin-top: @space-xxs;
+  line-height: 1.5;
+}
 
-.catalog-food-choice { display: block; width: 100%; margin: @space-xs 0; padding: @space-sm; font-size: @type-small; text-align: left; background: @colors-primarySoft; color: @colors-primary; }
+.catalog-food-choice {
+  display: block;
+  width: 100%;
+  margin: @space-xs 0;
+  padding: @space-sm;
+  font-size: @type-small;
+  text-align: left;
+  background: @colors-primarySoft;
+  color: @colors-primary;
+}
+
+.legacy-section {
+  margin-top: @space-xl;
+}
+.legacy-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: @space-md;
+  margin-bottom: @space-sm;
+}
+.legacy-title {
+  font-size: @type-title;
+  font-weight: @weight-semibold;
+  line-height: @leading-heading;
+}
+.legacy-count {
+  flex-shrink: 0;
+  font-size: @type-caption;
+  color: @colors-secondary;
+}
+.legacy-description {
+  display: block;
+  font-size: @type-caption;
+  color: @colors-secondary;
+  line-height: @leading-body;
+}
+.legacy-card {
+  gap: @space-md;
+  margin-top: @space-md;
+  padding: @space-lg @space-roomy;
+}
+.legacy-card .diet-name {
+  margin-bottom: 0;
+}
+.legacy-action {
+  flex-shrink: 0;
+  width: auto;
+  min-height: @layout-touch;
+  margin: 0;
+  padding: 0 @space-sm;
+  font-size: @type-small;
+  line-height: @layout-touch;
+  border-radius: @radius-small;
+}
+.association-note {
+  display: block;
+  margin-top: @space-roomy;
+  line-height: @leading-body;
+}

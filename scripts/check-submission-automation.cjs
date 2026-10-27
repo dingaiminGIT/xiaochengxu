@@ -42,14 +42,9 @@ const page={...definition,data:{selected:item,subscribing:false},setData(p){Obje
   assert.equal(loginPrompts,1,'expired session must reopen login for notification links');
   assert.equal(expired._initialId,'expired-session-submission');
   assert.equal(expired._loading,false);signedIn=true;
-  page.subscribeResult();assert(prompt);assert.equal(requested.length,0,'authorization must run inside click before network');
-  await prompt.success({template:'accept'});assert.equal(requested[0][0],'/food-submissions/s1/result-subscription');
-  assert.equal(requested[0][2].decision,'accept');assert.equal(page.data.subscribing,false);
-  requested=[];page.subscribeResult();account='u2';await prompt.success({template:'accept'});
-  assert.equal(requested.length,0,'switching accounts must discard the old authorization binding');
-  account='u1';page.data.subscribing=false;page.subscribeResult();await prompt.success({template:'reject'});
-  assert.equal(requested[0][2].decision,'reject');
+  assert.equal(page.subscribeResult, undefined, 'submission page no longer subscribes to results');
+  assert.equal(page.cancel, undefined, 'leaving the page must not delete a submission');
   assert(fs.readFileSync('pages/assistant/index.wxml','utf8').includes('segment.strong'));
-  assert(fs.readFileSync('pages/pet-space/food-submissions.js','utf8').includes('i.isProcessing'));
-  console.log('PASS: emphasis, legacy messages, user text, notification deep link/login recovery, click-time subscription, refusal, account isolation, pipeline polling');
+  assert(!fs.readFileSync('pages/pet-space/food-submissions.js','utf8').includes('this._poll'));
+  console.log('PASS: emphasis, legacy messages, user text, notification deep link/login recovery, no subscription or cancellation, no pipeline polling');
 })().catch(e=>{console.error(e);process.exit(1);});

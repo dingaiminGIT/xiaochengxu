@@ -44,6 +44,30 @@ export function parseReminderTime(date, time) {
 export function listReminders() {
   return loadStore().reminders || [];
 }
+// Recurring forms select a time/weekday; the API still receives a concrete dueAt.
+export function resolveReminderTime(form, now = Date.now(), previous = null) {
+  if (!['daily', 'weekly'].includes(form.repeat)) return parseReminderTime(form.date, form.time);
+  const next = new Date(parseReminderTime(localDate(now), form.time));
+  let weekday;
+  if (form.repeat === 'weekly') {
+    // Older callers may still provide an anchor date rather than a weekday.
+    weekday =
+      form.weekday === undefined && form.date
+        ? new Date(parseReminderTime(form.date, form.time)).getDay()
+        : form.weekday;
+    if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) throw Error('请选择每周提醒的星期');
+    next.setDate(next.getDate() + ((weekday - next.getDay() + 7) % 7));
+  }
+  if (
+    previous &&
+    previous.repeat === form.repeat &&
+    localTime(previous.dueAt) === form.time &&
+    (form.repeat === 'daily' || new Date(previous.dueAt).getDay() === weekday)
+  )
+    return previous.dueAt;
+  if (next.getTime() <= now) next.setDate(next.getDate() + (form.repeat === 'daily' ? 1 : 7));
+  return next.getTime();
+}
 export function listReminderHistory() {
   return loadStore().reminderHistory || [];
 }
@@ -53,9 +77,9 @@ export function saveReminder(form, now = Date.now()) {
   const title = String(form.title || '').trim();
   if (!title || title.length > 40) throw Error('请填写 1～40 字的提醒名称');
   if (!repeatOptions.some((r) => r.id === form.repeat)) throw Error('请选择重复方式');
-  const dueAt = parseReminderTime(form.date, form.time);
   const items = listReminders(),
     previous = items.find((r) => r.id === form.id);
+  const dueAt = resolveReminderTime(form, now, previous);
   if (form.id && !previous) throw Error('这条提醒已不存在');
   if (dueAt <= now && (!previous || previous.dueAt !== dueAt)) throw Error('请选择未来的提醒时间');
   const item = {

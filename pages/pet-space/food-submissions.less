@@ -1,111 +1,135 @@
 @import '../../styles/tokens.less';
-.page {
-  padding-bottom: @space-xl;
-}
+
 .form-card,
 .submission {
+  box-sizing: border-box;
   background: @colors-surface;
   border-radius: @radius-medium;
-  padding: 28rpx;
-  margin: @space-roomy 0;
+  padding: @space-lg;
+  margin: 0 0 @space-md;
 }
-.submission {
+.form-card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: @space-roomy;
-  text-align: left;
-  line-height: 1.5;
+  flex-direction: column;
+  gap: @space-md;
+  border: 2rpx solid transparent;
 }
-.submission > view {
-  flex: 1;
-  min-width: 0;
+.form-card .form-field {
+  margin: 0;
+}
+.form-field input,
+.form-field textarea {
+  border: 2rpx solid @colors-line;
+  border-radius: @radius-small;
+  background: @colors-page;
+}
+.form-field input {
+  height: @control-inputHeight;
+  padding: 0 @space-md;
+}
+.input-placeholder {
+  color: @colors-secondary;
+}
+.field-invalid > text {
+  color: @colors-danger;
+}
+.field-invalid input,
+.photos-invalid {
+  border-color: @colors-danger;
+  background: mix(@colors-danger, @colors-surface, 5%);
+}
+.photos-invalid .section-title {
+  color: @colors-danger;
+}
+.remark-field textarea {
+  height: 120rpx;
+  min-height: 120rpx;
+  padding: @space-xs 0;
+  background: transparent;
+  border: 0;
 }
 .section-title {
   display: block;
-  font-size: @type-body;
+  font-size: @type-cardTitle;
   font-weight: @weight-semibold;
-  margin: @space-sm 0;
+  line-height: @leading-heading;
 }
-.status {
+.caption {
   display: block;
-  color: @colors-primary;
-  font-size: @type-small;
+  color: @colors-secondary;
+  line-height: @leading-body;
 }
-.body-copy {
-  display: block;
-  white-space: pre-wrap;
-  line-height: 1.6;
-  margin: @space-md 0;
-  font-size: @type-body;
+.photo-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: @space-sm;
+}
+.photo-heading .text-button {
+  padding: 0;
 }
 .photos {
   display: flex;
   flex-wrap: wrap;
-  gap: @space-sm;
-  margin: @space-md 0;
+  gap: @space-roomy;
+  align-items: flex-start;
+}
+.photo-wrap {
+  width: 180rpx;
 }
 .photo,
-.add-photo,
-.photo-wrap {
-  width: 160rpx;
-  height: 160rpx;
-  border-radius: 20rpx;
-}
-.photo-wrap {
-  position: relative;
+.add-photo {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: @radius-small;
 }
 .add-photo {
-  border: 2rpx dashed @colors-muted;
   background: @colors-primarySoft;
+  color: @colors-primary;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: @space-sm;
   font-size: @type-caption;
   padding: 0;
   margin: 0;
 }
-.remove {
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 40rpx;
-  height: 40rpx;
-  line-height: 40rpx;
+.remove-photo {
+  margin: 0;
   padding: 0;
-  border-radius: 50%;
-  background: @colors-primary;
-  color: white;
+  min-height: @layout-touch;
+  line-height: @layout-touch;
+  background: transparent;
+  color: @colors-secondary;
+  font-size: @type-caption;
+}
+.submission {
+  display: flex;
+  flex-direction: column;
+  gap: @space-roomy;
+  width: 100%;
+  text-align: left;
+  line-height: @leading-body;
+}
+.submission-link {
+  color: @colors-primary;
+  font-size: @type-small;
+}
+.body-copy {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  line-height: @leading-body;
 }
 .notice {
   background: @colors-primarySoft;
   padding: @space-roomy;
-  border-radius: 16rpx;
+  margin-bottom: @space-md;
+  border-radius: @radius-small;
   font-size: @type-small;
-  line-height: 1.6;
+  line-height: @leading-body;
 }
-
-
-.ingredient-example {
-  position: relative;
-  width: 160rpx;
-  height: 160rpx;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  border-radius: 20rpx;
-  background: @colors-surfaceMuted;
-}
-.ingredient-example image { width: 100%; height: 100%; display: block; }
-.ingredient-example text {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: @space-xxs 0;
-  background: fade(@colors-text, 65%);
-  color: @colors-inverse;
-  font-size: @type-micro;
-  line-height: 1.5;
+// Keep the shared control sizes and safe area, without a separate footer panel.
+.page-action-footer.submission-footer {
+  background: transparent;
 }

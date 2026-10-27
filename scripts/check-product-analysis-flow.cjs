@@ -41,15 +41,16 @@ vm.runInNewContext(source('pages/pet-space/food-submissions.js'), {
 });
 const page = { ...definition, _active: true, data: { items: [], selected: view({ ...base, processing_status: 'processing' }) }, setData(p) { Object.assign(this.data, p); } };
 (async () => {
-  await page.load(); assert.equal(scheduled.delay, 5000, 'selected item outside list must continue polling');
-  fail = true; await scheduled.fn(); assert.equal(scheduled.delay, 10000, 'transient error retries automatically');
-  fail = false; completed = true; await scheduled.fn(); assert.equal(scheduled, null, 'terminal state stops polling');
+  await page.load(); assert.equal(scheduled, undefined, 'submission details do not poll');
+  fail = true; await page.load(); assert.equal(page.data.error, 'offline');
+  assert.equal(scheduled, undefined, 'errors offer manual retry rather than background polling');
+  fail = false; completed = true; await page.load();
   assert.equal(page.data.selected.statusText, '已完成');
-  completed = false; await page.load(); assert.ok(scheduled); page.onHide(); assert.equal(scheduled, null);
+  page.onHide(); assert.equal(page._active, false);
   vm.runInNewContext(source('pages/pet-space/food-list.js'), { Page: d => definition = d, requireSession: () => true, wx: { navigateTo: o => routes.push(o.url) } });
   definition.addFood.call({ data: { pet: { id: 'cat/a' } } });
   assert.equal(routes[1], '/pages/pet-space/hunting?petId=cat%2Fa');
   const wxml = fs.readFileSync('pages/pet-space/food-submissions.wxml', 'utf8');
   assert.ok(!/processing_stage|processing_message|刷新状态/.test(wxml));
-  console.log('PASS three states, automatic detail polling/retry/stop, normalized single/multiple cards, and pet-scoped navigation');
+  console.log('PASS three states, manual detail refresh without polling, normalized single/multiple cards, and pet-scoped navigation');
 })().catch(e => { console.error(e); process.exitCode = 1; });

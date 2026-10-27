@@ -1,7 +1,7 @@
 // Cloud writes and account-safe cache. The local repository remains for old records.
 import { api, hasSession, requireSession } from '../api/miniprogram';
 import { accountKey, loadStore, saveStore } from './pet-store';
-import { parseReminderTime, listReminders, listReminderHistory, completeReminder, deleteReminder } from './reminders';
+import { resolveReminderTime, listReminders, listReminderHistory, completeReminder, deleteReminder } from './reminders';
 
 function sameAccount(account) {
   if (account !== accountKey('reminders')) throw new Error('账号已变化，请重新打开提醒');
@@ -35,7 +35,7 @@ export async function refreshCloudReminders() {
 export async function saveCloudReminder(form, requestKey) {
   const account = accountForWrite();
   const existing = listReminders().find((r) => r.id === form.id);
-  const payload = { title: form.title, type: form.type, dueAt: parseReminderTime(form.date, form.time),
+  const payload = { title: form.title, type: form.type, dueAt: resolveReminderTime(form, Date.now(), existing),
     repeat: form.repeat, pet_id: form.petId || '', note: form.note || '', idempotency_key: requestKey };
   if (existing && !existing.cloud) payload.legacy_id = existing.id;
   if (existing?.cloud && form.revision != null) payload.expected_revision = form.revision;
