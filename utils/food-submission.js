@@ -89,6 +89,16 @@ export function submissionView(item) {
     ['done', 'completed', 'success'].includes(item.processing_status) || item.publish_status === 'published' ||
     (!item.processing_status && status === 'success');
   const isProcessing = !needsConfirmation && !completed;
+  const bundle = item.calculation_result || {};
+  const ready = item.result_available === true && !!bundle.portrait;
+  const provisional = ready && item.result_stage === 'provisional';
+  const portraitDimensions = (bundle.portrait || {}).dimensions || {};
+  const dimensions = ['protein_quality', 'protein', 'fat', 'fiber', 'carbohydrate', 'prebiotic'].filter((key) => portraitDimensions[key]).map((key) => {
+    const value = portraitDimensions[key];
+    return {
+      key, ...value, name: ({ protein_quality: '蛋白质量', protein: '蛋白压力', fat: '脂肪负担', fiber: '纤维缓冲', carbohydrate: '碳水负担', prebiotic: '菌群支持' })[key] || key, scoreText: typeof value.score === 'number' ? `${value.score} / ${value.scale_max}` : '资料不足',
+    };
+  });
   const messages = {
     unrecognized: '没有读到完整配料表，请拍包装背面的配料表近照，让文字完整、清晰、不反光。',
     needs_review: '请确认包装上的配料表和营养成分保证值，必要时重新上传清晰照片。',
@@ -96,16 +106,22 @@ export function submissionView(item) {
   };
   return {
     ...item,
+    resultReady: ready, provisional, dimensions,
+    resultLabel: ready ? (provisional ? '初算结果 · 待核对' : '正式结果') : '正在分析',
+    resultNote: item.result_updating && ready ? '结果更新中，当前显示上一版计算结果。' : provisional ? '基于当前上传资料计算，核对后可能更新。' : ready ? '已核对的计算结果。' : '',
+    nutritionRows: Object.values(bundle.nutrition || {}).filter((n) => n.value !== null && n.value !== undefined).map((n) => ({ ...n, display: `${n.operator || ''} ${n.value}${n.unit || ''}` })),
+    partialResult: !ready && !!bundle.partial,
+    needsRefresh: !cancelled && item.review_status !== 'rejected' && (isProcessing || !!item.result_updating || provisional || item.processing_status === 'need_review'),
     recognition_status: status,
     isProcessing,
-    recognitionMessage: cancelled ? '这次投稿已撤销。' : isProcessing
-      ? '正在识别，结果会自动更新。'
+    recognitionMessage: ready ? (item.result_updating ? '已有结果可查看，新版本正在计算。' : provisional ? '初算已完成，资料核对中，可先查看结果。' : '正式结果已更新。') : cancelled ? '这次投稿已撤销。' : isProcessing
+      ? (status === 'success' ? '正在生成分析结果，完成后会自动更新。' : '正在读取包装资料，结果会自动更新。')
       : needsConfirmation ? messages[status] || '请确认投稿信息，必要时重新上传清晰照片。'
       : '识别已完成，可以查看结果或交给管家分析。',
     canAnalyze: !cancelled && status === 'success' && !!(item.ingredient_composition || '').trim(),
     canReupload: !cancelled && needsConfirmation,
     title: `${item.claimed_brand || ''} ${item.claimed_product_name || ''}`.trim(),
-    statusText: cancelled ? '已完成' : needsConfirmation ? '需要确认' : isProcessing ? '识别中' : '已完成',
+    statusText: ready ? (provisional ? '初算可查看' : '分析完成') : cancelled ? '已撤销' : needsConfirmation ? '需要确认' : isProcessing ? (status === 'success' ? '分析中' : '识别中') : '已完成',
     canCancel:
       !cancelled &&
       !['approved', 'rejected'].includes(item.review_status) &&

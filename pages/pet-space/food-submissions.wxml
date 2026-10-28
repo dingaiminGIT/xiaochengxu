@@ -36,6 +36,24 @@
         <view class="photos"><p-image wx:for="{{selected.images}}" wx:key="id" image-class="photo" src="{{item.url}}" data-url="{{item.url}}" bindtap="preview" /></view>
         <text wx:if="{{selected.remark}}" class="body-copy">{{selected.remark}}</text>
       </view>
+      <view class="form-card result-progress" aria-live="polite">
+        <text class="section-title">{{selected.resultReady ? selected.resultLabel : selected.statusText}}</text>
+        <text class="body-copy">{{selected.recognitionMessage}}</text>
+        <text wx:if="{{selected.isProcessing && selected.processing_stage}}" class="caption">{{selected.processing_stage}}</text>
+        <text wx:if="{{selected.resultNote}}" class="caption">{{selected.resultNote}}</text>
+        <view wx:if="{{selected.partialResult}}">
+          <text class="caption">已读取以下营养保证值；配方画像和风险结果尚未就绪。</text>
+          <view wx:for="{{selected.nutritionRows}}" wx:key="name" class="result-dimension"><text>{{item.name}}</text><text>{{item.display}}</text></view>
+        </view>
+        <view wx:if="{{selected.resultReady}}" class="result-dimensions">
+          <view wx:for="{{selected.dimensions}}" wx:key="key" class="result-dimension">
+            <text>{{item.name || item.label || item.key}}</text><text>{{item.scoreText}}</text>
+          </view>
+        </view>
+        <text wx:if="{{selected.resultReady}}" class="caption">各维度含义不同，分数不代表综合优劣。</text>
+        <button wx:if="{{selected.resultReady}}" class="text-button" bindtap="analyzeResult">交给管家，与当前口粮对比 ›</button>
+        <button class="text-button" bindtap="load">刷新结果</button>
+      </view>
       <view wx:if="{{selected.ingredient_composition || selected.guaranteeText}}" class="form-card">
         <block wx:if="{{selected.ingredient_composition}}"><text class="section-title">配料表</text><text class="body-copy">{{selected.ingredient_composition}}</text></block>
         <block wx:if="{{selected.guaranteeText}}"><text class="section-title">营养成分</text><text class="body-copy">{{selected.guaranteeText}}</text></block>
@@ -44,7 +62,7 @@
     <block wx:else>
       <view wx:if="{{loading && !items.length}}" class="empty-state">正在加载…</view>
       <view wx:if="{{!loading && !error && !items.length}}" class="empty-state">还没有投稿</view>
-      <button wx:for="{{items}}" wx:key="id" class="submission" data-id="{{item.id}}" bindtap="open"><text class="section-title">{{item.title}}</text><text class="caption">提交时间 {{item.created_at}}</text><text class="submission-link">查看投稿内容 ›</text></button>
+      <button wx:for="{{items}}" wx:key="id" class="submission" data-id="{{item.id}}" bindtap="open"><text class="section-title">{{item.title}}</text><text class="caption">提交时间 {{item.created_at}}</text><text class="caption">{{item.statusText}}</text><text class="submission-link">查看结果与投稿内容 ›</text></button>
     </block>
   </view>
 </view>

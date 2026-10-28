@@ -214,6 +214,12 @@ Page({
     this._account = account;
     this._bindingPet = false;
     this.refreshChatPet().then(() => {
+      const pendingKey = accountKey('pending-food-submission');
+      const submissionId = wx.getStorageSync(pendingKey);
+      if (submissionId && account === accountKey('assistant') && this.data.boundPet?.id && !this.data.sending) {
+        wx.removeStorageSync(pendingKey);
+        this.sendCloudMessage({ attachments: [{ type: 'food_submission', submission_id: submissionId }] }, '请分析这次上传的食物，并与当前口粮对比');
+      }
       if (this._pendingStatusGuide && this.data.boundPet?.id) {
         this._pendingStatusGuide = false;
         this.openStatusGuide();
