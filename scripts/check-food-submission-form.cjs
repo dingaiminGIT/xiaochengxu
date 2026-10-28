@@ -9,6 +9,7 @@ let definition,
   account = 'one',
   response;
 const context = {
+  setTimeout, clearTimeout, hasSession: () => true,
   Page: (d) => {
     definition = d;
   },
@@ -88,7 +89,7 @@ function page() {
   assert.equal(sent, before, 'block duplicate requests');
   resolve({ id: 'new' });
   await pending;
-  assert.equal(p.data.selected, null);
+  assert.equal(p.data.selected.id, 'new', 'successful submission opens its result progress');
   assert.equal(p.data.creating, false);
   assert.equal(p.data.items[0].id, 'new');
   assert.equal(back, 0, 'inline form returns to its own list');
@@ -98,7 +99,8 @@ function page() {
   direct.data.form = { brand: '卫仕', product: 'LA20', images: ['local.png'] };
   response = { id: 'direct' };
   await direct.submit();
-  assert.equal(back, 1, 'direct entry returns to its opener');
+  assert.equal(back, 0, 'direct entry waits on result page until the user chooses analysis');
+  assert.equal(direct.data.selected.id, 'direct');
   const stale = page();
   stale.data.form = { brand: '卫仕', product: 'LA20', images: ['local.png'] };
   response = new Promise((r) => {
@@ -109,9 +111,9 @@ function page() {
   resolve({ id: 'other-user' });
   await request;
   assert.equal(stale.data.items.length, 0);
-  assert.equal(back, 1, 'stale account response cannot navigate');
+  assert.equal(back, 0, 'stale account response cannot navigate');
   console.log(
-    'PASS: missing-field feedback, highlight clearing, photo validation, failure retention, duplicate prevention, return navigation, account isolation',
+    'PASS: missing-field feedback, highlight clearing, photo validation, failure retention, duplicate prevention, result page after submit, account isolation',
   );
 })().catch((e) => {
   console.error(e);

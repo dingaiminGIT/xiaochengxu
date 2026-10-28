@@ -19,6 +19,7 @@ Page({
     this._initialId = q.id || '';
     this._entryId = this._initialId;
     this._directCreate = q.create === '1';
+    this._chatEntry = q.chat === '1';
     this.setData({ creating: this._directCreate });
     // A notification can open this page directly, without a navigateTo opener.
     const channel = this.getOpenerEventChannel();
@@ -48,6 +49,49 @@ Page({
   },
   onHide() {
     this._active = false;
+    this.stopRefresh();
+  },
+  stopRefresh() {
+    clearTimeout(this._resultTimer);
+    this._resultTimer = null;
+    this._refreshGeneration = (this._refreshGeneration || 0) + 1;
+  },
+  scheduleRefresh() {
+    clearTimeout(this._resultTimer);
+    this._resultTimer = null;
+    if (!this._active || this._disposed || !hasSession() || this.data.creating) return;
+    const candidates = this.data.selected ? [this.data.selected] : (this.data.items || []);
+    const pending = candidates.filter((item) => item.needsRefresh);
+    if (!pending.length) return;
+    const item = pending[(this._refreshCursor || 0) % pending.length];
+    this._refreshCursor = (this._refreshCursor || 0) + 1;
+    const delay = Math.min(30000, this._refreshDelay || 1000);
+    const generation = this._refreshGeneration || 0;
+    const account = accountKey('food-submissions');
+    this._resultTimer = setTimeout(async () => {
+      try {
+        const current = () => this._active && generation === (this._refreshGeneration || 0) && account === accountKey('food-submissions');
+        const r = await api(`/food-submissions/${encodeURIComponent(item.id)}/status`);
+        if (!current()) return;
+        const status = r.item;
+        let updated = item;
+        if (status.revision !== item.statusRevision) {
+          const detail = await api(`/food-submissions/${encodeURIComponent(item.id)}`);
+          if (!current()) return;
+          updated = submissionView(detail.item);
+        }
+        updated = { ...updated, statusRevision: status.revision, processing_stage: status.processing_stage,
+          needsRefresh: status.needs_refresh || updated.needsRefresh };
+        const patch = { items: (this.data.items || []).map((old) => old.id === item.id ? updated : old) };
+        if (this.data.selected && this.data.selected.id === item.id) patch.selected = updated;
+        this.setData(patch);
+        this._refreshDelay = status.is_processing || updated.isProcessing ? 1000 : Math.min(Math.max(delay, 2000) * 1.5, 30000);
+      } catch (e) {
+        this._refreshDelay = Math.min(delay * 2, 30000);
+      } finally {
+        if (generation === (this._refreshGeneration || 0) && account === accountKey('food-submissions')) this.scheduleRefresh();
+      }
+    }, delay);
   },
   onUnload() {
     this._disposed = true;
@@ -83,6 +127,7 @@ Page({
       this._loading = false;
       if (this._active) {
         this.setData({ loading: false });
+        this.scheduleRefresh();
       }
     }
   },
@@ -98,6 +143,7 @@ Page({
     });
   },
   create() {
+    this.stopRefresh();
     this.setData({ creating: true, selected: null, error: '', invalid: {} });
   },
   previewIngredientExample() {
@@ -166,15 +212,15 @@ Page({
       if (this._disposed || account !== accountKey('food-submissions')) return;
       this.setData({
         creating: false,
-        selected: null,
+        selected: submissionView(item),
         items: [submissionView(item), ...this.data.items.filter((i) => i.id !== item.id)],
         invalid: {},
         form: { brand: '', product: '', remark: '', images: [] },
       });
       const notify = () => wx.showToast({ title: '投稿成功', icon: 'success' });
-      if (this._directCreate && this._active && getCurrentPages().length > 1) {
-        wx.navigateBack({ success: notify, fail: notify });
-      } else if (this._active) notify();
+      if (this._active) notify();
+      this._refreshDelay = 1000;
+      this.scheduleRefresh();
     } catch (e) {
       if (this._active && account === accountKey('food-submissions'))
         wx.showToast({ title: errorText(e), icon: 'none' });
@@ -192,10 +238,27 @@ Page({
   async readDetail(id) {
     const account = accountKey('food-submissions');
     const r = await api(`/food-submissions/${encodeURIComponent(id)}`);
-    if (this._active && account === accountKey('food-submissions'))
+    if (this._active && account === accountKey('food-submissions')) {
+      this.stopRefresh();
+      this._refreshDelay = 1000;
       this.setData({ selected: submissionView(r.item), creating: false });
+      this.scheduleRefresh();
+    }
+  },
+  analyzeResult() {
+    const item = this.data.selected;
+    if (!item || !item.resultReady) return;
+    if (this._chatEntry) {
+      const channel = this.getOpenerEventChannel();
+      if (channel && channel.emit) channel.emit('foodSelected', item);
+      wx.navigateBack();
+    } else {
+      wx.setStorageSync(accountKey('pending-food-submission'), item.id);
+      wx.switchTab({ url: '/pages/assistant/index' });
+    }
   },
   closeDetail() {
+    this.stopRefresh();
     this.setData({ selected: null, creating: false });
     this.load();
   },

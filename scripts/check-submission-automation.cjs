@@ -45,6 +45,6 @@ const page={...definition,data:{selected:item,subscribing:false},setData(p){Obje
   assert.equal(page.subscribeResult, undefined, 'submission page no longer subscribes to results');
   assert.equal(page.cancel, undefined, 'leaving the page must not delete a submission');
   assert(fs.readFileSync('pages/assistant/index.wxml','utf8').includes('segment.strong'));
-  assert(!fs.readFileSync('pages/pet-space/food-submissions.js','utf8').includes('this._poll'));
-  console.log('PASS: emphasis, legacy messages, user text, notification deep link/login recovery, no subscription or cancellation, no pipeline polling');
+  assert(!fs.readFileSync('pages/pet-space/food-submissions.js','utf8').includes('/orchestrator/'));
+  console.log('PASS: emphasis, legacy messages, user text, notification deep link/login recovery, no subscription or cancellation, owned submission progress endpoint only');
 })().catch(e=>{console.error(e);process.exit(1);});
