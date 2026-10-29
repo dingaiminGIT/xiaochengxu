@@ -1,0 +1,59 @@
+<view wx:if="{{report}}" class="guardian-report">
+  <view class="report-header">
+    <text class="eyebrow">宠物管家 · 专属喂养建议</text>
+    <text class="report-title">{{report.pet.name || '当前宠物'}}的饮食报告</text>
+    <view class="pet-tags"><text>{{report.pet.breed || '品种未填写'}}</text><text>{{report.pet.life_stage || '阶段未填写'}}</text></view>
+  </view>
+  <view class="report-section summary">
+    <text class="section-title">整体总结</text>
+    <text class="body-text" selectable>{{report.summary.text}}</text>
+    <text wx:if="{{report.coverage_note}}" class="note" selectable>{{report.coverage_note}}</text>
+  </view>
+  <view class="report-tabs">
+    <button class="tab {{activeTab === 'advice' ? 'active' : ''}}" data-tab="advice" bindtap="selectTab">当前建议</button>
+    <button class="tab {{activeTab === 'community' ? 'active' : ''}}" data-tab="community" bindtap="selectTab">社区经验</button>
+  </view>
+  <view wx:if="{{activeTab === 'advice'}}">
+    <view class="report-section">
+      <text class="section-title">喂养建议</text>
+      <text class="body-text" selectable>{{report.feeding.text}}</text>
+    </view>
+    <view wx:for="{{report.feeding.products}}" wx:for-item="product" wx:key="id" class="report-section product">
+      <view class="product-heading"><text class="section-title">{{product.label}}</text><text wx:if="{{product.status === 'provisional'}}" class="stage">初算 · 待核对</text></view>
+      <text wx:if="{{product.structure.headline}}" class="note" selectable>{{product.structure.headline}}</text>
+      <view wx:if="{{product.strengths.length}}" class="points strengths">
+        <text class="point-heading">好在哪里</text>
+        <text wx:for="{{product.strengths}}" wx:for-item="point" wx:key="index" class="body-text" selectable>{{point.summary}}</text>
+      </view>
+      <view wx:if="{{product.cautions.length}}" class="points cautions">
+        <text class="point-heading">哪里需要留心</text>
+        <text wx:for="{{product.cautions}}" wx:for-item="point" wx:key="index" class="body-text" selectable>{{point.summary}}</text>
+      </view>
+      <text wx:for="{{product.data_notes}}" wx:for-item="note" wx:key="index" class="note" selectable>{{note.text}}</text>
+      <text wx:if="{{product.note}}" class="note" selectable>{{product.note}}</text>
+    </view>
+    <view wx:if="{{comparisons.length}}" class="report-section comparison">
+      <view class="product-heading"><text class="section-title">营养结构差异</text><button class="score-toggle" bindtap="toggleScores">{{showScores ? '直观对比' : '查看分值'}}</button></view>
+      <view wx:for="{{comparisons}}" wx:for-item="pair" wx:key="right_id" class="comparison-pair">
+        <text class="note" selectable>{{pair.left_label}} / {{pair.right_label}}</text>
+        <view wx:if="{{pair.status === 'comparable'}}" wx:for="{{pair.dimensions}}" wx:for-item="dimension" wx:key="key" class="dimension">
+          <text class="point-heading">{{dimension.title}}</text>
+          <view class="dimension-columns">
+            <view class="dimension-side"><text class="dimension-value">{{showScores && dimension.left.score !== null ? dimension.left.score + ' / ' + dimension.left.scale_max : dimension.left.label}}</text><view class="bar"><view class="bar-fill" style="width: {{dimension.leftWidth}}%;"></view></view></view>
+            <view class="dimension-side"><text class="dimension-value">{{showScores && dimension.right.score !== null ? dimension.right.score + ' / ' + dimension.right.scale_max : dimension.right.label}}</text><view class="bar"><view class="bar-fill alternate" style="width: {{dimension.rightWidth}}%;"></view></view></view>
+          </view>
+        </view>
+        <text class="note" selectable>{{pair.note}}</text>
+      </view>
+    </view>
+  </view>
+  <view wx:else class="report-section community">
+    <text class="section-title">社区经验</text><text class="body-text" selectable>{{report.community.text}}</text>
+    <view wx:for="{{report.community.items}}" wx:for-item="experience" wx:key="id" class="experience">
+      <text class="point-heading" selectable>{{experience.title}}</text><text class="body-text" selectable>{{experience.text}}</text>
+      <text class="source">{{experience.source.table === 'cat_disease_clues' ? '品牌相关社区反馈' : '知识库整理'}}{{experience.source.evidence_status ? ' · ' + experience.source.evidence_status : ''}}</text>
+    </view>
+    <text class="note">{{report.community.note}}</text>
+  </view>
+  <view class="report-section next-steps"><text class="section-title">接下来</text><text class="body-text">{{report.next_steps.prompt}}</text></view>
+</view>

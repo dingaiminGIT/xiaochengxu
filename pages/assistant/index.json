@@ -1,7 +1,8 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "p-image": "/components/p-image"
+    "p-image": "/components/p-image",
+    "guardian-report": "/components/guardian-report/index"
   },
   "disableScroll": true
 }

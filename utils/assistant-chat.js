@@ -124,6 +124,11 @@ function healthPoints(points) {
 
 export function mapChatMessage(message) {
   const interaction = message.interaction || {};
+  const report = (message.result || {}).guardian_report;
+  const guardianReport = message.role === 'assistant' && report?.schema === 'guardian_report' && report.version === 1
+    && report.pet && report.summary && report.feeding && report.community && report.next_steps
+    && Array.isArray(report.feeding.products) && Array.isArray(report.feeding.comparisons)
+    && Array.isArray(report.community.items) ? report : null;
   const health = (message.result || {}).health_analysis || {};
   const subjects = Array.isArray(health.subjects) ? health.subjects : [];
   const multiple = subjects.length > 1;
@@ -134,6 +139,7 @@ export function mapChatMessage(message) {
   } : null;
   return {
     ...message,
+    guardianReport,
     text: message.content || message.reply || '',
     blocks: messageBlocks(message),
     knowledgeCards: knowledgeCards(message),
