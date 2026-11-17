@@ -11,7 +11,7 @@
     "theme": "node scripts/build-theme.js",
     "test:contracts": "node scripts/check-contracts.cjs",
     "test:halloween": "node scripts/check-halloween.cjs && node scripts/check-halloween-task-prompt.cjs",
-    "test:guzi": "node scripts/check-guzi.cjs",
+    "test:guzi": "node scripts/check-guzi.cjs && node scripts/check-guzi-generation.cjs",
     "test:health-analysis": "node scripts/check-health-analysis.cjs",
     "test:guardian-1020": "node scripts/check-guardian-1020.cjs && node scripts/check-history-identities.cjs",
     "test:calculation-results": "node scripts/check-calculation-results.cjs && node scripts/check-food-submission-form.cjs && node scripts/check-submission-automation.cjs"

@@ -2,7 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const read = path => fs.readFileSync(path, 'utf8').replace(/^import .*;$/gm, '').replace(/export /g, '');
-const generation = vm.createContext({ setTimeout, clearTimeout });
+const generation = vm.createContext({ setTimeout, clearTimeout, config: { apiBaseUrl: 'https://test.invalid' } });
 vm.runInContext(`${read('pages/guzi/generation.js')}\nthis.exports={createGeneration,normalizePrompt,DEFAULT_PROMPT,DEMO_IMAGE,MAX_PHOTO_BYTES,PROMPT_LIMIT};`, generation);
 const g = generation.exports;
 const math = {};
@@ -12,13 +12,6 @@ const m = math.exports;
 async function run() {
   assert.equal(Array.from(g.normalizePrompt('猫'.repeat(400))).length, 300);
   assert.equal(Array.from(g.normalizePrompt('🐈'.repeat(301))).length, 300);
-  await assert.rejects(g.createGeneration({ photoPath: '', prompt: 'cat' }).promise);
-  const cancelled = g.createGeneration({ photoPath: 'photo.jpg', prompt: 'cat' });
-  cancelled.cancel();
-  await assert.rejects(cancelled.promise, e => e.cancelled);
-  const demo = await g.createGeneration({ photoPath: 'photo.jpg', prompt: 'cat' }).promise;
-  assert.equal(demo.isDemo, true, 'mock output must never masquerade as generated user content');
-  assert.equal(demo.imagePath, g.DEMO_IMAGE);
 
   for (const [width, height] of [[1200, 600], [600, 1200], [800, 800], [8000, 500]]) {
     const photo = m.fitPhoto(width, height, 300);
@@ -43,7 +36,7 @@ async function run() {
     saveImageToPhotosAlbum: args => { albumPath = args.filePath; args.success({}); },
   };
   vm.runInNewContext(read('pages/guzi/index.js'), {
-    ...g, wx, shareCard() {}, Page: value => { definition = value; },
+    ...g, wx, requireSession: () => true, shareCard() {}, Page: value => { definition = value; },
     createGeneration: () => {
       calls++;
       return { promise: new Promise((resolve, reject) => { resolveTask = resolve; rejectTask = reject; }),
@@ -103,6 +96,6 @@ async function run() {
   assert.ok(home.includes('openGuzi') && !home.includes('openHalloween'));
   assert.ok(!fs.readFileSync('pages/home/index.js', 'utf8').includes('showHalloweenTaskPrompt'));
   assert.ok(fs.existsSync(`.${g.DEMO_IMAGE}`));
-  console.log('PASS guzi: prompt limits, cancellable demo, crop boundaries, duplicate submission, retry, recreation, crop cancellation, album save, unload and entry routing');
+  console.log('PASS guzi: prompt limits, crop boundaries, duplicate submission, retry, recreation, crop cancellation, album save, unload and entry routing');
 }
 run().catch(error => { console.error(error); process.exitCode = 1; });

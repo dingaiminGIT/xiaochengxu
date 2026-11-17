@@ -1,5 +1,6 @@
 import { createGeneration, DEFAULT_PROMPT, DEMO_IMAGE, MAX_PHOTO_BYTES, PROMPT_LIMIT, normalizePrompt } from './generation';
 import { shareCard } from '../../utils/share';
+import { requireSession } from '../../api/miniprogram';
 
 Page({
   data: {
@@ -71,6 +72,7 @@ Page({
       this.setData({ error: '请填写头像描述' });
       return;
     }
+    if (!requireSession()) return;
     wx.hideKeyboard();
     this.setData({ state: 'generating', inputFocused: false, error: '' });
     wx.pageScrollTo({ scrollTop: 0, duration: 0 });
@@ -83,7 +85,7 @@ Page({
       if (!result || !result.imagePath) throw new Error('未能获取生成结果，请重试');
       this.setData({ state: 'success', resultPath: result.imagePath, isDemo: !!result.isDemo, preview: 'badge' });
     } catch (error) {
-      if (this._alive && !error.cancelled) this.setData({ state: 'failed', error: '暂时无法生成，请稍后重试。' });
+      if (this._alive && !error.cancelled) this.setData({ state: 'failed', error: error.message || '暂时无法生成，请稍后重试。' });
     } finally {
       if (this._task === task) this._task = null;
     }
