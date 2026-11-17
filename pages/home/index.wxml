@@ -42,7 +42,7 @@
     </view>
   </block>
 </block>
-</view></scroll-view></view></view><button wx:if="{{!showRecord && homeTab === 'community'}}" class="halloween-float" bindtap="openHalloween" aria-label="万圣节活动，领取生图兑换码"><image src="/static/activity/halloween-cat.png" mode="aspectFill" /><text class="halloween-float-label">领生图码</text></button><button wx:if="{{homeTab === 'goods' && isMerchant && !showRecord}}" class="floating-publish" bindtap="openGoodsPublish" aria-label="发布商品"><view class="publish-disc">＋ 商品</view></button><button wx:if="{{homeTab === 'community'}}" class="floating-publish" bindtap="goRelease" aria-label="发布瞬间"><view class="publish-disc">＋ 瞬间</view></button></view>
+</view></scroll-view></view></view><button wx:if="{{!showRecord && homeTab === 'community'}}" class="guzi-float" bindtap="openGuzi" aria-label="生成谷子"><image src="/static/activity/guzi-entry.png" mode="aspectFit" /></button><button wx:if="{{homeTab === 'goods' && isMerchant && !showRecord}}" class="floating-publish" bindtap="openGoodsPublish" aria-label="发布商品"><view class="publish-disc">＋ 商品</view></button><button wx:if="{{homeTab === 'community'}}" class="floating-publish" bindtap="goRelease" aria-label="发布瞬间"><view class="publish-disc">＋ 瞬间</view></button></view>
 <view wx:if="{{showRecord}}" class="sheet-mask" bindtap="closeSheet"></view>
 <view wx:if="{{showRecord}}" class="bottom-sheet"><view class="sheet-heading"><text>{{recordTitle}}</text><button bindtap="closeSheet" aria-label="关闭"><p-icon name="close" /></button></view>
 <text class="caption">填写本次值，保存后自动累加到今天。{{recordFields.length > 1 ? '可只填写需要记录的项目。' : ''}}</text>

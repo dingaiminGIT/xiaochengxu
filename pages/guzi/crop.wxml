@@ -1,0 +1,16 @@
+<view class="crop-page">
+  <page-header title="裁剪照片" back />
+  <view class="crop-body">
+    <view class="crop-title">把脸和耳朵都留下</view>
+    <text class="crop-hint">拖动调整位置，双指缩放</text>
+    <view class="crop-stage" style="width:{{size}}px;height:{{size}}px" bindtouchstart="onTouchStart" catchtouchmove="onTouchMove" bindtouchend="onTouchEnd" bindtouchcancel="onTouchEnd">
+      <image wx:if="{{photo}}" src="{{source}}" mode="scaleToFill" style="width:{{photo.width}}px;height:{{photo.height}}px;left:{{photo.x}}px;top:{{photo.y}}px" />
+      <view class="crop-grid"><view class="grid-v one"></view><view class="grid-v two"></view><view class="grid-h one"></view><view class="grid-h two"></view></view>
+      <text wx:if="{{loading}}" class="crop-message">读取照片中…</text>
+      <text wx:elif="{{error}}" class="crop-message">{{error}}</text>
+    </view>
+    <slider wx:if="{{photo}}" min="1" max="4" step="0.01" value="{{zoom}}" bindchanging="onZoom" bindchange="onZoom" disabled="{{saving}}" activeColor="#7460d9" backgroundColor="#e6dff0" block-size="22" aria-label="缩放照片" />
+  </view>
+  <view class="crop-footer"><button bindtap="confirmCrop" disabled="{{loading || saving || !photo}}" loading="{{saving}}">使用这张照片</button></view>
+  <canvas type="2d" id="crop-canvas" class="export-canvas"></canvas>
+</view>

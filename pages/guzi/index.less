@@ -1,0 +1,46 @@
+page { background: #f8f5fc; }
+.guzi-page { min-height: 100vh; box-sizing: border-box; color: #302846; background: #f8f5fc; padding-bottom: calc(270rpx + env(safe-area-inset-bottom)); }
+.guzi-body { padding: 16rpx 45rpx 32rpx; }
+.guzi-title { margin-bottom: 28rpx; font-size: 48rpx; font-weight: 700; line-height: 1.5; }
+.centered { text-align: center; }
+.guzi-card { position: relative; padding: 30rpx; margin-bottom: 30rpx; border-radius: 42rpx; background: #fff; }
+.card-title { display: block; margin-bottom: 20rpx; font-size: 30rpx; line-height: 1.5; font-weight: 700; }
+.small-label { display: block; color: #82758e; font-size: 23rpx; line-height: 1.5; }
+.example-card, .generation-card, .result-card { border-radius: 42rpx; background: #eee8fc; padding: 30rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; margin-bottom: 30rpx; }
+.example-badge { width: 212rpx; height: 212rpx; border-radius: 50%; }
+.guzi-page button { box-sizing: border-box; margin: 0; }
+.guzi-page button::after { border: 0; }
+.upload-zone { width: 100%; padding: 28rpx; margin-bottom: 20rpx !important; border-radius: 30rpx; background: #f8f5fc; text-align: left; line-height: 1.5; }
+.upload-action { display: block; color: #7460d9; font-size: 34rpx; margin-bottom: 8rpx; font-weight: 600; }
+.photo-card { display: flex; justify-content: center; padding: 38rpx 30rpx; }
+.photo-wrap, .scan-photo { position: relative; width: 430rpx; height: 430rpx; border-radius: 36rpx; overflow: hidden; }
+.selected-photo, .scan-photo > image { display: block; width: 100%; height: 100%; }
+.guzi-page .icon-button { position: absolute; padding: 0; display: flex; align-items: center; justify-content: center; width: 82rpx; height: 82rpx; border-radius: 50%; }
+.icon-button image { width: 42rpx; height: 42rpx; }
+.replace-button { top: 20rpx; right: 22rpx; background: #eee8fc; }
+.crop-button { bottom: 16rpx; left: 50%; transform: translateX(-50%); background: rgba(39,31,51,.78); }
+.prompt-input { display: block; width: 100%; min-height: 145rpx; box-sizing: border-box; font-size: 27rpx; line-height: 1.65; color: #302846; }
+.word-count { display: block; text-align: right; margin-top: 20rpx; font-size: 23rpx; color: #82758e; }
+.field-error { display: block; margin-top: 12rpx; color: #ae4c50; font-size: 24rpx; }
+.generation-label { color: #7460d9; font-size: 30rpx; font-weight: 600; text-align: center; width: 100%; }
+.scan-shade { position: absolute; inset: 0; background: rgba(71,48,122,.18); }
+.scan-light { position: absolute; left: 0; top: -35%; width: 100%; height: 35%; background: linear-gradient(180deg, rgba(224,212,255,0), rgba(239,232,255,.35) 45%, rgba(255,255,255,.75) 75%, rgba(224,212,255,0)); animation: guzi-scan 1.8s linear infinite; }
+@keyframes guzi-scan { from { top: -35%; } to { top: 100%; } }
+.preview-tabs { display: flex; padding: 12rpx; margin-bottom: 24rpx; border-radius: 30rpx; background: #fff; }
+.preview-tabs button { width: 50%; padding: 12rpx 0; border-radius: 22rpx; background: transparent; color: #82758e; font-size: 27rpx; line-height: 1.6; }
+.preview-tabs .active { background: #f3efff; color: #7460d9; font-weight: 600; }
+.result-card { padding: 48rpx 30rpx 36rpx; }
+.result-image { width: 490rpx; height: 490rpx; border-radius: 32rpx; box-sizing: border-box; }
+.result-image.badge { border-radius: 50%; border: 14rpx solid #fff; }
+.dimension { display: flex; align-items: center; width: 490rpx; gap: 24rpx; color: #82758e; font-size: 23rpx; }
+.dimension view { flex: 1; height: 1rpx; background: #c9beda; }
+.demo-label { display: block; margin: -12rpx 0 22rpx; font-size: 22rpx; color: #82758e; }
+.error-card { background: #fff0db; font-size: 26rpx; line-height: 1.6; }
+.retained-input image { display: block; width: 140rpx; height: 140rpx; border-radius: 24rpx; margin-bottom: 20rpx; }
+.retained-input text { font-size: 26rpx; line-height: 1.6; color: #82758e; }
+.guzi-footer { position: fixed; z-index: 10; bottom: 0; left: 0; right: 0; display: flex; flex-direction: column; gap: 18rpx; padding: 28rpx 45rpx calc(32rpx + env(safe-area-inset-bottom)); background: #fff; }
+.guzi-footer button { width: 100%; min-height: 96rpx; display: flex; align-items: center; justify-content: center; border-radius: 32rpx; font-size: 30rpx; font-weight: 600; line-height: 1.4; padding: 22rpx; }
+.guzi-footer .primary { color: #fff; background: #7460d9; }
+.guzi-footer .primary[disabled] { color: #fff; background: #c9bff0; }
+.guzi-footer .secondary { color: #7460d9; background: #eee8fc; }
+.keyboard-open { padding-bottom: 40rpx; }

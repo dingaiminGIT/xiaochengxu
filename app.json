@@ -7,6 +7,11 @@
   },
   "subpackages": [
     {
+      "root": "pages/guzi",
+      "name": "guzi",
+      "pages": ["index", "crop"]
+    },
+    {
       "root": "pages/halloween",
       "name": "halloween",
       "pages": ["index", "redeem"]

@@ -1,7 +1,6 @@
 import { getMerchantIdentity } from '../../utils/merchant';
 import { listCommunityGoods, askAboutGoods } from '../../utils/goods';
 import { deviceRequest } from '../../utils/device-api';
-import { showHalloweenTaskPrompt } from '../../utils/halloween-task-prompt';
 import { shareCard, timelineCard } from '../../utils/share';
 import { calendarDays, remindersOnDate, weekStart } from '../../utils/reminder-calendar';
 import { localDate, listReminders } from '../../utils/reminders';
@@ -96,7 +95,6 @@ Page({
       this._reloadFeedOnShow = false;
       this.loadFeed();
     }
-    showHalloweenTaskPrompt();
   },
   async syncPets() {
     if (!hasSession()) return;
@@ -375,8 +373,8 @@ Page({
     saveStore({ favorites: favorites.includes(id) ? favorites.filter((v) => v !== id) : [...favorites, id] });
     this.filterPosts();
   },
-  openHalloween() {
-    wx.navigateTo({ url: '/pages/halloween/index', fail: () => wx.showToast({ title: '活动页面打开失败，请重试', icon: 'none' }) });
+  openGuzi() {
+    wx.navigateTo({ url: '/pages/guzi/index', fail: () => wx.showToast({ title: '活动页面打开失败，请重试', icon: 'none' }) });
   },
   goRelease() {
     this._reloadFeedOnShow = true;

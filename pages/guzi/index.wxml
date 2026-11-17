@@ -1,0 +1,67 @@
+<view class="guzi-page {{inputFocused ? 'keyboard-open' : ''}}">
+  <page-header title="生成谷子" back />
+  <view class="guzi-body">
+    <block wx:if="{{state === 'editing'}}">
+      <view class="guzi-title">{{photoPath ? '这次，让它成为主角' : '让可爱，有“徽”可藏'}}</view>
+      <view wx:if="{{!photoPath}}" class="example-card">
+        <image class="example-badge" src="{{demoImage}}" mode="aspectFill" />
+        <text class="small-label">58mm 圆形徽章</text>
+      </view>
+      <view wx:if="{{!photoPath}}" class="guzi-card upload-card">
+        <text class="card-title">01 上传宠物照片</text>
+        <button class="upload-zone" bindtap="choosePhoto" loading="{{choosing}}" disabled="{{choosing}}">
+          <text class="upload-action">＋ 选择照片</text>
+          <text class="small-label">单只宠物、正脸清晰、耳朵完整</text>
+        </button>
+        <text class="small-label">JPG / PNG，单张不超过 10MB</text>
+      </view>
+      <view wx:else class="guzi-card photo-card">
+        <view class="photo-wrap">
+          <image class="selected-photo" src="{{photoPath}}" mode="aspectFill" />
+          <button class="icon-button crop-button" bindtap="recropPhoto" aria-label="裁剪照片"><image src="assets/crop.svg" /></button>
+        </view>
+        <button class="icon-button replace-button" bindtap="choosePhoto" disabled="{{choosing}}" aria-label="更换照片"><image src="assets/replace.svg" /></button>
+      </view>
+      <view class="guzi-card prompt-card">
+        <text class="card-title">{{photoPath ? '' : '02 '}}描述你想要的头像</text>
+        <textarea class="prompt-input" value="{{prompt}}" maxlength="-1" auto-height placeholder="描述你想要的头像" bindinput="onPromptInput" bindfocus="onPromptFocus" bindblur="onPromptBlur" cursor-spacing="100" show-confirm-bar="{{false}}" />
+        <text class="word-count">{{promptCount}} / {{promptLimit}}</text>
+        <text wx:if="{{error}}" class="field-error">{{error}}</text>
+      </view>
+    </block>
+    <block wx:elif="{{state === 'generating'}}">
+      <view class="guzi-title centered">可爱正在成形…</view>
+      <view class="generation-card">
+        <view class="scan-photo">
+          <image src="{{photoPath}}" mode="aspectFill" />
+          <view class="scan-shade"></view><view class="scan-light"></view>
+        </view>
+        <text class="generation-label">正在生成卡通头像…</text>
+      </view>
+    </block>
+    <block wx:elif="{{state === 'success'}}">
+      <view class="guzi-title">你的专属谷子，诞生啦</view>
+      <text wx:if="{{isDemo}}" class="demo-label">示例预览</text>
+      <view class="preview-tabs">
+        <button class="{{preview === 'avatar' ? 'active' : ''}}" data-mode="avatar" bindtap="setPreview">头像原图</button>
+        <button class="{{preview === 'badge' ? 'active' : ''}}" data-mode="badge" bindtap="setPreview">58mm 徽章</button>
+      </view>
+      <view class="result-card">
+        <image class="result-image {{preview === 'badge' ? 'badge' : ''}}" src="{{resultPath}}" mode="aspectFill" />
+        <view wx:if="{{preview === 'badge'}}" class="dimension"><view></view><text>58 mm</text><view></view></view>
+        <text wx:else class="small-label">1 : 1 头像原图</text>
+      </view>
+    </block>
+    <block wx:elif="{{state === 'failed'}}">
+      <view class="guzi-title">这次没能画出来</view>
+      <view class="guzi-card error-card"><text class="card-title">生成失败</text><text>{{error}}</text></view>
+      <view class="guzi-card retained-input"><image src="{{photoPath}}" mode="aspectFill" /><text>{{prompt}}</text></view>
+    </block>
+  </view>
+  <view wx:if="{{!inputFocused}}" class="guzi-footer">
+    <block wx:if="{{state === 'editing'}}"><button class="primary" disabled="{{!photoPath || !promptValid || choosing}}" bindtap="generate">{{photoPath ? '生成卡通头像' : '先上传宠物照片'}}</button></block>
+    <button wx:elif="{{state === 'generating'}}" class="primary" disabled>正在生成，请稍候</button>
+    <block wx:elif="{{state === 'success'}}"><button class="primary" loading="{{saving}}" disabled="{{saving}}" bindtap="saveImage">{{isDemo ? '保存示例原图' : '保存头像原图'}}</button><button class="secondary" bindtap="recreate">重新创作</button></block>
+    <block wx:else><button class="primary" bindtap="generate">重新尝试</button><button class="secondary" bindtap="recreate">重新创作</button></block>
+  </view>
+</view>

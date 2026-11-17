@@ -1,0 +1,20 @@
+page { background: #f8f5fc; }
+.crop-page { color: #302846; min-height: 100vh; }
+.crop-body { padding: 16rpx 45rpx 180rpx; }
+.crop-title { font-size: 46rpx; font-weight: 700; line-height: 1.5; }
+.crop-hint { display: block; font-size: 24rpx; color: #82758e; margin: 14rpx 0 32rpx; }
+.crop-stage { position: relative; overflow: hidden; margin: 0 auto; border-radius: 28rpx; background: #eee8fc; }
+.crop-stage > image { position: absolute; max-width: none; }
+.crop-grid { position: absolute; inset: 0; border: 2rpx solid rgba(255,255,255,.8); border-radius: 28rpx; pointer-events: none; }
+.grid-v, .grid-h { position: absolute; background: rgba(255,255,255,.45); }
+.grid-v { width: 1rpx; top: 0; bottom: 0; }
+.grid-h { height: 1rpx; left: 0; right: 0; }
+.grid-v.one { left: 33.333%; } .grid-v.two { left: 66.667%; }
+.grid-h.one { top: 33.333%; } .grid-h.two { top: 66.667%; }
+.crop-message { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 24rpx; font-size: 26rpx; text-align: center; }
+.crop-body slider { margin: 36rpx 12rpx; }
+.crop-footer { position: fixed; left: 0; right: 0; bottom: 0; padding: 28rpx 45rpx calc(32rpx + env(safe-area-inset-bottom)); background: #fff; }
+.crop-footer button { border: 0; border-radius: 32rpx; background: #7460d9; color: #fff; font-size: 30rpx; font-weight: 600; min-height: 96rpx; }
+.crop-footer button::after { border: 0; }
+.crop-footer button[disabled] { color: #fff; background: #c9bff0; }
+.export-canvas { position: fixed; left: -4096px; top: 0; width: 2048px; height: 2048px; pointer-events: none; }
