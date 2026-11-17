@@ -1,4 +1,5 @@
 .health-knowledge { color:#29223d; padding:8rpx 0; }
+.solution { background:#f2f8f5; border-radius:16rpx; padding:18rpx; }.solution .detail-title { color:#387562; }.solution-condition { margin-bottom:12rpx; }.solution-step { margin-bottom:8rpx; }
 .heading { display:flex; align-items:center; justify-content:space-between; gap:16rpx; margin-bottom:18rpx; }
 .title { font-size:30rpx; font-weight:600; }.page,.note { color:#847b97; font-size:22rpx; }
 .intro { display:block; font-size:25rpx; line-height:1.7; margin-bottom:18rpx; }

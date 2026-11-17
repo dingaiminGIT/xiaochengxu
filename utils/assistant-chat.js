@@ -168,6 +168,10 @@ export function mapChatMessage(message) {
         cautions: Array.isArray(item.cautions) ? item.cautions : [],
       })) : [],
     productRecommendationNote: message.result?.product_recommendations?.note || '',
+    productQuestions: message.role === 'assistant' && message.result?.product_recommendations?.version === 1
+      && message.result.product_recommendations.status === 'ready'
+      && Array.isArray(message.result.product_recommendations.questions)
+      ? message.result.product_recommendations.questions.filter((q) => typeof q === 'string').slice(0, 3) : [],
     canRefreshProducts: message.role === 'assistant' && message.result?.product_recommendations?.version === 1
       && message.result.product_recommendations.has_more === true
       && message.result.intent === 'food_switch',
@@ -211,7 +215,7 @@ export const chatMethods = {
     if (this.data.sending || !requireSession()) return;
     const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
     const question = event.detail?.question;
-    const allowed = [...(message?.healthKnowledge?.questions || []), ...(message?.guardianReport?.next_steps?.questions || []), ...(message?.contextQuestions || [])];
+    const allowed = [...(message?.healthKnowledge?.questions || []), ...(message?.guardianReport?.next_steps?.questions || []), ...(message?.contextQuestions || []), ...(message?.productQuestions || [])];
     if (typeof question !== 'string' || !allowed.includes(question)) return;
     if (this._cloudPetId && this._cloudPetId !== this.data.boundPet?.id) return;
     return this.sendCloudMessage({ message: question, source_message_id: message.id }, question);
@@ -219,6 +223,11 @@ export const chatMethods = {
   askContextQuestion(event) {
     const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
     const question = message?.contextQuestions?.[Number(event.currentTarget.dataset.index)];
+    if (question) return this.askTaskQuestion({ currentTarget: event.currentTarget, detail: { question } });
+  },
+  askProductQuestion(event) {
+    const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
+    const question = message?.productQuestions?.[Number(event.currentTarget.dataset.index)];
     if (question) return this.askTaskQuestion({ currentTarget: event.currentTarget, detail: { question } });
   },
   askKnowledgeQuestion(event) {
