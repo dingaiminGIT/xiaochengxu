@@ -160,6 +160,17 @@ export function mapChatMessage(message) {
     selectedValues: [],
     riskReasons: (((message.result || {}).risk || {}).reasons || []).join('、'),
     limitedInfo: !!(message.result && message.result.limited_info),
+    productRecommendations: message.role === 'assistant' && message.result?.product_recommendations?.version === 1
+      && Array.isArray(message.result.product_recommendations.items)
+      ? message.result.product_recommendations.items.map((item) => ({
+        ...item,
+        productLabel: item.entity_level === 'brand' ? '具体产品未明确' : item.product_name,
+        cautions: Array.isArray(item.cautions) ? item.cautions : [],
+      })) : [],
+    productRecommendationNote: message.result?.product_recommendations?.note || '',
+    canRefreshProducts: message.role === 'assistant' && message.result?.product_recommendations?.version === 1
+      && message.result.product_recommendations.has_more === true
+      && message.result.intent === 'food_switch',
     candidates: ((message.result && message.result.food_candidates) || []).map((candidate) => ({
       ...candidate,
       strengths: candidate.recommendation_card?.reasons || candidate.strengths || [],
@@ -235,6 +246,17 @@ export const chatMethods = {
     const candidate = message?.candidates?.[Number(index)];
     if (!candidate?.catalog_key) return;
     this.sendCloudMessage({ interaction: { slot: 'target_food', value: candidate.catalog_key } }, '查看 ' + candidate.brand + ' ' + candidate.product_name);
+  },
+  refreshProductRecommendations(event) {
+    if (this.data.sending) return;
+    const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
+    const recommendation = message?.result?.product_recommendations;
+    if (!recommendation?.refresh_token || !message.canRefreshProducts) return;
+    if (!recommendation.pet_id || recommendation.pet_id !== this.data.boundPet?.id || recommendation.pet_id !== this._cloudPetId) {
+      wx.showToast({ title: '请先切换到这条推荐对应的宠物', icon: 'none' });
+      return;
+    }
+    this.sendCloudMessage({ interaction: { slot: 'product_recommendation_refresh', value: recommendation.refresh_token } }, '换一组');
   },
   requestOtherCandidates() {
     if (!this.data.sending) this.sendCloudMessage({ message: '换一组' }, '换一组');
