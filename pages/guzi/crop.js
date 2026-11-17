@@ -4,7 +4,7 @@ function point(touch) { return { x: touch.clientX, y: touch.clientY }; }
 function distance(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
 
 Page({
-  data: { source: '', size: 300, photo: null, zoom: 1, loading: true, saving: false, error: '' },
+  data: { source: '', size: 300, photo: null, zoom: 1, loading: true, saving: false, error: '', exportSize: 2048 },
   onLoad() {
     this._alive = true;
     const window = wx.getWindowInfo();
@@ -75,6 +75,11 @@ Page({
     if (!this._photo || this.data.saving || this.data.loading) return;
     this.setData({ saving: true });
     try {
+      const photo = { ...this._photo };
+      const rect = sourceRect(photo, this._info.width, this.data.size);
+      const size = Math.max(1, Math.min(2048, Math.round(rect.size)));
+      // WeChat exports in layout pixels: keep layout and backing-store sizes equal.
+      await new Promise(resolve => this.setData({ exportSize: size }, resolve));
       const canvas = await new Promise((resolve, reject) => {
         this.createSelectorQuery().select('#crop-canvas').fields({ node: true, size: true }).exec(result => {
           if (result[0] && result[0].node) resolve(result[0].node);
@@ -83,14 +88,15 @@ Page({
       });
       const image = canvas.createImage();
       await new Promise((resolve, reject) => { image.onload = resolve; image.onerror = reject; image.src = this.data.source; });
-      const rect = sourceRect(this._photo, this._info.width, this.data.size);
-      const size = Math.max(1, Math.min(2048, Math.round(rect.size)));
       canvas.width = size;
       canvas.height = size;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, size, size);
-      ctx.drawImage(image, rect.x, rect.y, rect.size, rect.size, 0, 0, size, size);
+      // Render the same full-image transform as the preview. This also avoids
+      // source-coordinate differences for images decoded/downsampled on iOS.
+      const ratio = size / this.data.size;
+      ctx.drawImage(image, photo.x * ratio, photo.y * ratio, photo.width * ratio, photo.height * ratio);
       const path = await new Promise((resolve, reject) => wx.canvasToTempFilePath({
         canvas, width: size, height: size, destWidth: size, destHeight: size,
         fileType: 'jpg', quality: 0.94, success: r => resolve(r.tempFilePath), fail: reject,

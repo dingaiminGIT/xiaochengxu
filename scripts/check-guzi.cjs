@@ -26,6 +26,49 @@ async function run() {
     }
   }
 
+  // Exercise actual crop export, including a small/zoomed photo whose output
+  // is below 2048px (the previous fixed CSS canvas size clipped this case).
+  for (const [width, height, scale] of [[1200, 800, 1], [4032, 3024, 4], [600, 1200, 2]]) {
+    let cropDefinition, emitted, draw, exported, layoutSize;
+    const canvas = {
+      createImage() { return { set src(value) { this.onload(); } }; },
+      getContext() { return { fillRect() {}, drawImage(...args) { draw = args; } }; },
+    };
+    vm.runInNewContext(read('pages/guzi/crop.js'), {
+      ...m, Page: value => { cropDefinition = value; },
+      wx: {
+        canvasToTempFilePath(options) {
+          exported = options;
+          assert.equal(canvas.width, layoutSize);
+          assert.equal(canvas.height, layoutSize);
+          assert.equal(options.width, layoutSize);
+          assert.equal(options.destWidth, layoutSize);
+          options.success({ tempFilePath: 'export.jpg' });
+        },
+        navigateBack() {}, showToast() { assert.fail('crop unexpectedly failed'); },
+      },
+    });
+    const crop = {
+      ...cropDefinition, data: { ...cropDefinition.data, size: 300, loading: false, source: 'pet.jpg' },
+      _alive: true, _info: { width, height },
+      _photo: m.zoomPhoto(m.fitPhoto(width, height, 300), scale, { x: 150, y: 150 }, 300),
+      setData(patch, callback) { Object.assign(this.data, patch); layoutSize = this.data.exportSize; if (callback) callback(); },
+      createSelectorQuery() { return { select() { return this; }, fields() { return this; }, exec(cb) { cb([{ node: canvas }]); } }; },
+      getOpenerEventChannel() { return { emit(name, value) { emitted = value.path; } }; },
+    };
+    await crop.confirmCrop();
+    assert.equal(emitted, 'export.jpg');
+    assert.ok(exported.width <= 2048);
+    assert.equal(draw.length, 5, 'draw full image using preview transform');
+    // The same point in the photo must land at the same normalized position
+    // in both preview and exported image, even with pan/zoom and small output.
+    for (const [u, v] of [[0, 0], [0.5, 0.5], [1, 1]]) {
+      assert.ok(Math.abs((draw[1] + u * draw[3]) / canvas.width - (crop._photo.x + u * crop._photo.width) / 300) < 1e-9);
+      assert.ok(Math.abs((draw[2] + v * draw[4]) / canvas.height - (crop._photo.y + v * crop._photo.height) / 300) < 1e-9);
+    }
+  }
+  assert.ok(fs.readFileSync('pages/guzi/crop.wxml', 'utf8').includes('width:{{exportSize}}px;height:{{exportSize}}px'));
+
   let definition, resolveTask, rejectTask, calls = 0, navigations = [], toasts = [], albumPath, cancelCalls = 0;
   const wx = {
     hideKeyboard() {}, pageScrollTo() {}, showToast: args => toasts.push(args.title),
