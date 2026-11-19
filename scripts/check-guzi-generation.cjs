@@ -2,12 +2,14 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 let account = 'alice', storage = new Map([['miniprogram_token', 'token-a']]);
-let uploads = [], polls = [], timers = [], aborted = 0;
+let uploads = [], polls = [], downloads = [], imageInfo = [], timers = [], aborted = 0;
 const wx = {
   getStorageSync: key => storage.get(key), setStorageSync: (key, value) => storage.set(key, { ...value }),
   removeStorageSync: key => storage.delete(key),
   uploadFile: args => { uploads.push(args); return { abort: () => aborted++ }; },
   request: args => { polls.push(args); return { abort: () => aborted++ }; },
+  downloadFile: args => { downloads.push(args); return { abort: () => aborted++ }; },
+  getImageInfo: args => { imageInfo.push(args); },
 };
 const ctx = vm.createContext({ wx, config: { apiBaseUrl: 'https://test.invalid' },
   mediaUrl: url => url.startsWith('/') ? `https://test.invalid${url}` : url,
@@ -39,10 +41,44 @@ async function run() {
   const resumed = create();
   assert.equal(uploads.length, 2, 'cancelled polling resumes accepted server task without uploading again');
   respond(polls.at(-1), 'succeeded', { image_url: '/api/miniprogram/moment-images/example' });
+  assert.equal(storage.has('alice:guzi-generation'), true, 'retain task until full preview is ready');
+  assert.equal(downloads.at(-1).url, 'https://test.invalid/api/miniprogram/moment-images/example');
+  downloads.at(-1).success({ statusCode: 200, tempFilePath: '/tmp/complete.jpg' });
+  imageInfo.at(-1).success({ width: 2048, height: 2048 });
   const result = await resumed.promise;
   assert.equal(result.isDemo, false);
-  assert.equal(result.imagePath, 'https://test.invalid/api/miniprogram/moment-images/example');
+  assert.equal(result.imagePath, '/tmp/complete.jpg');
   assert.equal(storage.has('alice:guzi-generation'), false);
+  const badDownload = create();
+  respond(uploads.at(-1), 'succeeded', { image_url: '/api/miniprogram/moment-images/example' });
+  downloads.at(-1).success({ statusCode: 503 });
+  await assert.rejects(badDownload.promise, /图片已生成/);
+  assert.equal(storage.has('alice:guzi-generation'), true);
+  const uploadCount = uploads.length;
+  const corruptImage = create();
+  respond(polls.at(-1), 'succeeded', { image_url: '/api/miniprogram/moment-images/example' });
+  downloads.at(-1).success({ statusCode: 200, tempFilePath: '/tmp/broken.jpg' });
+  imageInfo.at(-1).fail();
+  await assert.rejects(corruptImage.promise, /预览加载失败/);
+  const timedOutImage = create();
+  respond(polls.at(-1), 'succeeded', { image_url: '/api/miniprogram/moment-images/example' });
+  downloads.at(-1).success({ statusCode: 200, tempFilePath: '/tmp/stalled.jpg' });
+  timers.shift()();
+  await assert.rejects(timedOutImage.promise, /预览加载失败/);
+  imageInfo.at(-1).success({ width: 2048, height: 2048 });
+  assert.equal(storage.has('alice:guzi-generation'), true, 'late image callbacks do not discard resumable task');
+  const cancelDownload = create();
+  respond(polls.at(-1), 'succeeded', { image_url: '/api/miniprogram/moment-images/example' });
+  cancelDownload.cancel();
+  await assert.rejects(cancelDownload.promise, e => e.cancelled);
+  downloads.at(-1).success({ statusCode: 200, tempFilePath: '/tmp/late.jpg' });
+  assert.equal(storage.has('alice:guzi-generation'), true);
+  const completeDownload = create();
+  respond(polls.at(-1), 'succeeded', { image_url: '/api/miniprogram/moment-images/example' });
+  downloads.at(-1).success({ statusCode: 200, tempFilePath: '/tmp/recovered.jpg' });
+  imageInfo.at(-1).success({ width: 2048, height: 2048 });
+  assert.equal((await completeDownload.promise).imagePath, '/tmp/recovered.jpg');
+  assert.equal(uploads.length, uploadCount, 'preview retries never create another paid generation');
   const failure = create();
   respond(uploads.at(-1), 'failed', { error: '生成失败' });
   await assert.rejects(failure.promise, /生成失败/);
@@ -59,6 +95,6 @@ async function run() {
   const count = uploads.length;
   await assert.rejects(create().promise, /登录/);
   assert.equal(uploads.length, count);
-  console.log('PASS real generation adapter: multipart auth, idempotency, polling, cancellation/resume, true results, failure and account isolation');
+  console.log('PASS real generation adapter: multipart auth, idempotency, polling, cancellation/resume, complete local preview, download/decode failures, retry without regeneration, cancellation, failure and account isolation');
 }
 run().catch(e => { console.error(e); process.exitCode = 1; });

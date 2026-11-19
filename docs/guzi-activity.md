@@ -16,11 +16,11 @@
 `pages/guzi/generation.js` 已接真实接口，使用当前登录 Bearer token：
 
 - `POST /api/miniprogram/image-generations`：multipart 字段 `image`、`prompt`、`request_id`，返回 202 与任务。
-- `GET /api/miniprogram/image-generations/:id`：查询 `pending / generating / succeeded / failed`；成功读取 `image_url`。
+- `GET /api/miniprogram/image-generations/:id`：查询 `pending / generating / succeeded / failed`；成功读取 `image_url`，完整下载到本地并校验图片可读取后再展示。
 
-适配器返回 `{ promise, cancel }`，成功值 `{ imagePath, isDemo: false, taskId }`。首页示例图只用于上传前展示，生成不再返回固定猫头像。
+适配器返回 `{ promise, cancel }`，成功值 `{ imagePath, isDemo: false, taskId }`，其中 `imagePath` 为完整图片的本地临时路径。首页示例图只用于上传前展示，生成不再返回固定猫头像。
 
-每 1.5 秒查询结果，网络失败有限重试；按账号保存任务标识，相同照片和描述再次提交会继续查询，上传响应丢失时复用 request_id。页面退出停止本地请求，不取消已受理的服务端任务。重新进入后选择同一照片路径与描述可复用任务；没有自动恢复编辑表单。服务端任务超时为 10 分钟。
+每 1.5 秒查询结果，网络失败有限重试；按账号保存任务标识，相同照片和描述再次提交会继续查询，上传响应丢失时复用 request_id。页面退出停止本地请求，不取消已受理的服务端任务。重新进入后选择同一照片路径与描述可复用任务；没有自动恢复编辑表单。服务端任务超时为 10 分钟。结果下载失败会保留任务标识；点击重试只重新查询和下载已有图片，不重新生成。下载阶段有超时和错误提示，只有预览准备完成才清理任务标识。
 
 服务端输出 `2048x2048` 单图，保存到现有图片存储后返回稳定地址。微信后台需配置 API 请求、上传与结果图片下载合法域名。58mm 为圆形预览，不是印刷出血模板。300 字是产品上限，不等于 Seedream 模型硬上限。
 

@@ -14,7 +14,7 @@ export function normalizePrompt(value) {
 
 // Cancel stops local upload/polling only. An accepted server task may still finish;
 // keep its identity so retries resume it instead of charging for a second image.
-export function createGeneration({ photoPath, prompt }) {
+export function createGeneration({ photoPath, prompt, onStage = () => {} }) {
   const token = wx.getStorageSync('miniprogram_token') || '';
   const key = accountKey('guzi-generation');
   let stopped = false, timer, transport, rejectTask, settled = false;
@@ -63,8 +63,30 @@ export function createGeneration({ photoPath, prompt }) {
       persist();
       if (item.status === 'succeeded') {
         if (!item.image_url) { finish(new Error('未能获取生成结果，请重试')); return; }
-        forget();
-        finish(null, { imagePath: mediaUrl(item.image_url), isDemo: false, taskId: item.id });
+        // Render a complete local file, rather than a partially loaded remote image.
+        // Keep the task identity until preview preparation succeeds: retrying a
+        // failed download must not create another paid model request.
+        onStage('preparing');
+        const downloadError = () => new Error('图片已生成，但预览加载失败，点击重试取回图片');
+        transport = wx.downloadFile({
+          url: mediaUrl(item.image_url), timeout: 60000,
+          success(res) {
+            if (!ensureActive()) return;
+            if (res.statusCode !== 200 || !res.tempFilePath) { finish(downloadError()); return; }
+            timer = setTimeout(() => { if (ensureActive()) finish(downloadError()); }, 30000);
+            wx.getImageInfo({
+              src: res.tempFilePath,
+              success(info) {
+                if (!ensureActive()) return;
+                if (!(info.width > 0 && info.height > 0)) { finish(downloadError()); return; }
+                forget();
+                finish(null, { imagePath: res.tempFilePath, isDemo: false, taskId: item.id });
+              },
+              fail() { if (ensureActive()) finish(downloadError()); },
+            });
+          },
+          fail() { if (ensureActive()) finish(downloadError()); },
+        });
       } else if (item.status === 'failed') {
         forget();
         finish(new Error(item.error || '暂时无法生成，请稍后重试'));

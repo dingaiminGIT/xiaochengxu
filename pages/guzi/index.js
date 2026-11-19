@@ -7,7 +7,7 @@ Page({
     state: 'editing', photoPath: '', originalPath: '', prompt: DEFAULT_PROMPT,
     promptValid: true, promptCount: Array.from(DEFAULT_PROMPT).length, promptLimit: PROMPT_LIMIT,
     demoImage: DEMO_IMAGE, resultPath: '', isDemo: false, preview: 'badge',
-    choosing: false, saving: false, inputFocused: false, error: '',
+    choosing: false, saving: false, inputFocused: false, error: '', generationLabel: '正在生成卡通头像…',
   },
   onLoad() { this._alive = true; },
   onUnload() {
@@ -74,11 +74,18 @@ Page({
     }
     if (!requireSession()) return;
     wx.hideKeyboard();
-    this.setData({ state: 'generating', inputFocused: false, error: '' });
+    this.setData({ state: 'generating', inputFocused: false, error: '', generationLabel: '正在生成卡通头像…' });
     wx.pageScrollTo({ scrollTop: 0, duration: 0 });
     let task;
     try {
-      task = createGeneration({ photoPath: this.data.photoPath, prompt: this.data.prompt.trim() });
+      task = createGeneration({
+        photoPath: this.data.photoPath, prompt: this.data.prompt.trim(),
+        onStage: stage => {
+          if (this._alive && this.data.state === 'generating' && stage === 'preparing') {
+            this.setData({ generationLabel: '图片已生成，正在准备完整预览…' });
+          }
+        },
+      });
       this._task = task;
       const result = await task.promise;
       if (!this._alive || this._task !== task) return;

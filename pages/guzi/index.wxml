@@ -36,7 +36,7 @@
           <image src="{{photoPath}}" mode="aspectFill" />
           <view class="scan-shade"></view><view class="scan-light"></view>
         </view>
-        <text class="generation-label">正在生成卡通头像…</text>
+        <text class="generation-label">{{generationLabel}}</text>
       </view>
     </block>
     <block wx:elif="{{state === 'success'}}">
