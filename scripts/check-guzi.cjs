@@ -10,8 +10,8 @@ vm.runInNewContext(`${read('pages/guzi/crop-math.js')}\nthis.exports={fitPhoto,c
 const m = math.exports;
 
 async function run() {
-  assert.equal(Array.from(g.normalizePrompt('猫'.repeat(400))).length, 300);
-  assert.equal(Array.from(g.normalizePrompt('🐈'.repeat(301))).length, 300);
+  assert.equal(Array.from(g.normalizePrompt('猫'.repeat(g.PROMPT_LIMIT + 100))).length, g.PROMPT_LIMIT);
+  assert.equal(Array.from(g.normalizePrompt('🐈'.repeat(g.PROMPT_LIMIT + 1))).length, g.PROMPT_LIMIT);
 
   for (const [width, height] of [[1200, 600], [600, 1200], [800, 800], [8000, 500]]) {
     const photo = m.fitPhoto(width, height, 300);
@@ -79,7 +79,7 @@ async function run() {
     saveImageToPhotosAlbum: args => { albumPath = args.filePath; args.success({}); },
   };
   vm.runInNewContext(read('pages/guzi/index.js'), {
-    ...g, wx, requireSession: () => true, shareCard() {}, Page: value => { definition = value; },
+    ...g, wx, api: async () => ({ items: [{ id: 'felt', name: '毛毡', prompt: '毛毡'.repeat(200) }, { id: 'sketch', name: '素描', prompt: '素描'.repeat(300) }] }), requireSession: () => true, shareCard() {}, Page: value => { definition = value; },
     createGeneration: () => {
       calls++;
       return { promise: new Promise((resolve, reject) => { resolveTask = resolve; rejectTask = reject; }),
@@ -88,6 +88,21 @@ async function run() {
   });
   const page = { ...definition, data: { ...definition.data }, setData(patch) { Object.assign(this.data, patch); } };
   page.onLoad();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(page.data.selectedStyle, 'felt');
+  assert.equal(page.data.prompt, '毛毡'.repeat(200));
+  page.selectPromptStyle({ currentTarget: { dataset: { id: 'sketch' } } });
+  assert.equal(page.data.prompt, '素描'.repeat(300));
+  assert.equal(page.data.promptCount, 600);
+  assert.equal(page.data.selectedStyle, 'sketch');
+  page.onPromptInput({ detail: { value: '自定义风格' } });
+  assert.equal(page.data.selectedStyle, '');
+  page.onPromptInput({ detail: { value: '毛毡'.repeat(200) } });
+  assert.equal(page.data.selectedStyle, '', 'manual text does not reselect a matching preset');
+  await page.loadPromptStyles();
+  assert.equal(page.data.selectedStyle, '', 'refresh must preserve manual mode');
+  page.selectPromptStyle({ currentTarget: { dataset: { id: 'felt' } } });
+  assert.equal(page.data.prompt, '毛毡'.repeat(200));
   page.choosePhoto();
   assert.equal(page.data.choosing, false);
   assert.equal(toasts.length, 0, 'cancelled photo picker stays silent');

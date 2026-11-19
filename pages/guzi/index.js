@@ -1,15 +1,47 @@
 import { createGeneration, DEFAULT_PROMPT, DEMO_IMAGE, MAX_PHOTO_BYTES, PROMPT_LIMIT, normalizePrompt } from './generation';
+import { accountKey } from '../../utils/pet-store';
 import { shareCard } from '../../utils/share';
-import { requireSession } from '../../api/miniprogram';
+import { requireSession, api } from '../../api/miniprogram';
 
 Page({
   data: {
     state: 'editing', photoPath: '', originalPath: '', prompt: DEFAULT_PROMPT,
     promptValid: true, promptCount: Array.from(DEFAULT_PROMPT).length, promptLimit: PROMPT_LIMIT,
+    promptStyles: [], selectedStyle: '', stylesLoading: false, stylesError: false,
     demoImage: DEMO_IMAGE, resultPath: '', isDemo: false, preview: 'badge',
-    choosing: false, saving: false, inputFocused: false, error: '', generationLabel: '正在生成卡通头像…',
+    choosing: false, saving: false, sharing: false, inputFocused: false, error: '', generationLabel: '正在生成卡通头像…',
   },
-  onLoad() { this._alive = true; },
+  onLoad() { this._alive = true; this.loadPromptStyles(); },
+  async loadPromptStyles() {
+    if (this.data.stylesLoading) return;
+    this.setData({ stylesLoading: true, stylesError: false });
+    try {
+      const result = await api('/image-generations/prompts');
+      if (!Array.isArray(result.items) || !result.items.length || result.items.some(item =>
+        !item || typeof item.id !== 'string' || typeof item.name !== 'string' ||
+        typeof item.prompt !== 'string' || !item.prompt.trim() || Array.from(item.prompt).length > PROMPT_LIMIT)) {
+        throw new Error('Invalid prompt list');
+      }
+      if (this._alive) {
+        const first = result.items[0];
+        const defaults = !this._promptTouched && this.data.state === 'editing'
+          ? { prompt: first.prompt, promptCount: Array.from(first.prompt).length, promptValid: true, selectedStyle: first.id }
+          : {};
+        this.setData({ promptStyles: result.items, ...defaults });
+      }
+    } catch (_) {
+      if (this._alive) this.setData({ stylesError: true });
+    } finally {
+      if (this._alive) this.setData({ stylesLoading: false });
+    }
+  },
+  selectPromptStyle(event) {
+    const style = this.data.promptStyles.find(item => item.id === event.currentTarget.dataset.id);
+    if (!style || this.data.state !== 'editing') return;
+    this._promptTouched = true;
+    this.setData({ prompt: style.prompt, promptCount: Array.from(style.prompt).length,
+      promptValid: true, selectedStyle: style.id, error: '' });
+  },
   onUnload() {
     this._alive = false;
     if (this._task) this._task.cancel();
@@ -17,7 +49,8 @@ Page({
   onShareAppMessage() { return shareCard('给毛孩子生成专属谷子', '/pages/guzi/index'); },
   onPromptInput(event) {
     const prompt = normalizePrompt(event.detail.value);
-    this.setData({ prompt, promptValid: !!prompt.trim(), promptCount: Array.from(prompt).length, error: '' });
+    this._promptTouched = true;
+    this.setData({ selectedStyle: '', prompt, promptValid: !!prompt.trim(), promptCount: Array.from(prompt).length, error: '' });
     return prompt;
   },
   onPromptFocus() { this.setData({ inputFocused: true }); },
@@ -102,6 +135,35 @@ Page({
     wx.pageScrollTo({ scrollTop: 0, duration: 0 });
   },
   setPreview(event) { this.setData({ preview: event.currentTarget.dataset.mode }); },
+  async showOff() {
+    if (this.data.sharing || this.data.state !== 'success' || !this.data.resultPath) return;
+    if (!requireSession()) return;
+    const source = this.data.resultPath;
+    const account = accountKey('guzi-share');
+    this.setData({ sharing: true });
+    try {
+      // Copy rather than move the temporary result: returning must preserve the preview.
+      if (!this._shareImage || this._shareImage.source !== source || this._shareImage.account !== account) {
+        const path = `${wx.env.USER_DATA_PATH}/guzi-post-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+        await new Promise((resolve, reject) => wx.getFileSystemManager().copyFile({ srcPath: source, destPath: path, success: resolve, fail: reject }));
+        this._shareImage = { source, account, path };
+      }
+      if (!this._alive || account !== accountKey('guzi-share')) return;
+      const imagePath = this._shareImage.path;
+      await new Promise((resolve, reject) => wx.navigateTo({
+        url: '/pages/release/index?source=guzi',
+        success: result => {
+          result.eventChannel.emit('guziResult', { imagePath, account });
+          resolve();
+        },
+        fail: reject,
+      }));
+    } catch (_) {
+      if (this._alive) wx.showToast({ title: '暂时无法带入图片，请重试', icon: 'none' });
+    } finally {
+      if (this._alive) this.setData({ sharing: false });
+    }
+  },
   async saveImage() {
     if (this.data.saving || !this.data.resultPath) return;
     this.setData({ saving: true });

@@ -18,6 +18,12 @@ Page({
     draftId: '',
   },
   onLoad(query) {
+    if (query.source === 'guzi' && !query.id) {
+      this.getOpenerEventChannel().once('guziResult', ({ imagePath, account }) => {
+        if (account !== accountKey('guzi-share') || !imagePath || this.data.images.length) return;
+        this.setData({ images: [imagePath], category: 'FUNNY' });
+      });
+    }
     this._activity = query.activity || '';
     this._activityAccount = accountKey('activity-publish');
     const draft = loadStore().posts.find((p) => p.id === query.id && p.status === 'draft');

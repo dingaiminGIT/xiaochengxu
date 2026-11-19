@@ -2,7 +2,7 @@ import config from '../../config';
 import { mediaUrl } from '../../api/miniprogram';
 import { accountKey } from '../../utils/pet-store';
 
-export const PROMPT_LIMIT = 300;
+export const PROMPT_LIMIT = 2000;
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 export const DEMO_IMAGE = '/pages/guzi/assets/avatar-demo.jpg';
 export const DEFAULT_PROMPT = '把照片里的宠物画成可爱的 Q 版卡通头像，保留毛色、花纹和眼睛特征。正面居中，完整露出耳朵，浅紫色背景，线条干净，不要文字。';
@@ -118,7 +118,7 @@ export function createGeneration({ photoPath, prompt, onStage = () => {} }) {
     };
     if (!token) { finish(Object.assign(new Error('请先登录'), { statusCode: 401 })); return; }
     if (!photoPath || !String(prompt || '').trim() || Array.from(prompt).length > PROMPT_LIMIT) {
-      finish(new Error('请选择照片，并填写 1–300 字描述')); return;
+      finish(new Error(`请选择照片，并填写 1–${PROMPT_LIMIT} 字描述`)); return;
     }
     try { record = wx.getStorageSync(key); } catch (_) { record = null; }
     if (!record || record.photoPath !== photoPath || record.prompt !== prompt) {
