@@ -7,3 +7,15 @@
 .pair-title { display:block; font-size:24rpx; margin:22rpx 0 12rpx; color:#78658d; }.impact-heading { display:block; margin:28rpx 0 16rpx; font-size:28rpx; }
 .impact-change { padding:20rpx; margin:14rpx 0; border:1rpx solid #ece3fb; border-radius:20rpx; background:#fcfaff; }
 .task-question { text-align:left; background:#f4effc; color:#68518b; padding:18rpx; font-size:25rpx; line-height:1.6; border-radius:18rpx; margin:12rpx 0; }.task-question::after { border:0; }
+
+.change-group-title { display:block; margin:24rpx 0 12rpx; font-size:26rpx; font-weight:600; }
+.change-group-title.positive { color:#287a57; }
+.change-group-title.attention { color:#95631d; }
+.impact-change.positive { border-color:#d4eadf; background:#f5fbf7; }
+.impact-change.attention { border-color:#f0dfbd; background:#fffbf3; }
+
+.change-group .change-group-title { margin:0 0 16rpx; }
+.change-metric-row { display:flex; align-items:baseline; justify-content:space-between; gap:16rpx; padding:10rpx 0; }
+.change-metric-row .note { margin:0; text-align:right; }
+.group-copy { margin-top:14rpx; padding-top:8rpx; border-top:1rpx solid rgba(0,0,0,0.06); }
+.change-group .observation .body-text { font-size:23rpx; }

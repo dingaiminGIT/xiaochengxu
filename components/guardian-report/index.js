@@ -9,12 +9,32 @@ Component({
           rightWidth: this.barWidth(dimension.right),
         })),
       }));
+      const switchPairs = (report?.feeding?.task_nutrition?.pairs || []).map((pair) => {
+        const changes = pair.top_changes || [];
+        const groups = [
+          { key: 'positive', title: '好的方向', items: changes.filter((change) => change.right_better === true) },
+          { key: 'attention', title: '留心的方向', items: changes.filter((change) => change.right_better === false) },
+        ].map((group) => {
+          const items = group.items.slice().sort((a, b) => (b.magnitude || 0) - (a.magnitude || 0));
+          const uniqueCopy = (field) => {
+            const seen = new Set();
+            return items.flatMap((change) => change.rules || []).reduce((texts, rule) => {
+              const text = String(rule[field] || '').trim();
+              const key = text.replace(/[\s，,。；;、]/g, '');
+              if (key && !seen.has(key)) { seen.add(key); texts.push(text); }
+              return texts;
+            }, []);
+          };
+          return { ...group, items, explanations: uniqueCopy('recommendation_text'), observations: uniqueCopy('owner_observation') };
+        });
+        return { ...pair, change_groups: groups };
+      });
       const questions = Array.isArray(report?.next_steps?.questions) ? report.next_steps.questions : [];
-      this.setData({ comparisons, activeTab: report?.scene === 'switch_impact' ? 'switch' : 'advice', showScores: false,
+      this.setData({ comparisons, switchPairs, activeTab: report?.scene === 'switch_impact' ? 'switch' : 'advice', showScores: false,
         questions, questionPage: 0, visibleQuestions: questions.slice(0, 3) });
     } },
   },
-  data: { activeTab: 'advice', showScores: false, comparisons: [], questions: [], questionPage: 0, visibleQuestions: [] },
+  data: { activeTab: 'advice', showScores: false, comparisons: [], switchPairs: [], questions: [], questionPage: 0, visibleQuestions: [] },
   methods: {
     barWidth(dimension) {
       const { score, scale_max: maximum } = dimension || {};

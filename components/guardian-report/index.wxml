@@ -65,15 +65,25 @@
     </view>
   </view>
   <view wx:elif="{{activeTab === 'switch'}}" class="switch-impact">
-    <view wx:for="{{report.feeding.task_nutrition.pairs}}" wx:for-item="pair" wx:key="right_id" class="report-section">
+    <view wx:for="{{switchPairs}}" wx:for-item="pair" wx:key="right_id" class="report-section">
       <text class="section-title">换粮影响分析</text><text class="body-text">{{pair.from_label}} → {{pair.to_label}}</text>
       <text class="point-heading impact-heading">关键营养变化</text>
-      <view wx:for="{{pair.top_changes}}" wx:for-item="change" wx:key="key" class="impact-change">
-        <view class="product-heading"><text class="point-heading">{{change.title}} {{change.direction === 'increase' ? '↑' : '↓'}}</text><text class="note">{{change.from_score}} → {{change.to_score}} / {{change.scale_max}}</text></view>
-        <text wx:for="{{change.rules}}" wx:for-item="rule" wx:key="id" class="body-text" selectable>{{rule.recommendation_text}}</text>
-        <text wx:for="{{change.rules}}" wx:for-item="rule" wx:key="id" class="observation" selectable>观察：{{rule.owner_observation}}</text>
-        <text wx:if="{{!change.rules.length}}" class="note">暂缺这个变化方向的解释规则。</text>
-      </view>
+      <block wx:for="{{pair.change_groups}}" wx:for-item="group" wx:key="key">
+        <view wx:if="{{group.items.length}}" class="impact-change change-group {{group.key}}">
+          <text class="change-group-title {{group.key}}">{{group.title}}</text>
+          <view wx:for="{{group.items}}" wx:for-item="change" wx:key="key" class="change-metric-row">
+            <text class="point-heading">{{change.metric_title || change.title}} {{change.direction === 'increase' ? '↑' : '↓'}}</text>
+            <text class="note">{{change.from_score}} → {{change.to_score}} / {{change.scale_max}}</text>
+          </view>
+          <view wx:if="{{group.explanations.length}}" class="group-copy">
+            <text wx:for="{{group.explanations}}" wx:for-item="line" wx:key="*this" class="body-text" selectable>{{line}}</text>
+          </view>
+          <view wx:if="{{group.observations.length}}" class="observation">
+            <text class="point-heading">日常观察</text>
+            <text wx:for="{{group.observations}}" wx:for-item="line" wx:key="*this" class="body-text" selectable>{{line}}</text>
+          </view>
+        </view>
+      </block>
       <text wx:if="{{!pair.top_changes.length}}" class="note">暂无可比较的变化，可能分值相同或资料、版本不一致。</text>
       <text class="point-heading impact-heading">可能出现的身体变化</text>
       <view wx:for="{{pair.health_links}}" wx:for-item="link" wx:key="index" class="impact-change"><text wx:for="{{link.manifestations}}" wx:for-item="line" wx:key="*this" class="body-text">{{line}}</text><text class="note">{{link.relation}}</text></view>
