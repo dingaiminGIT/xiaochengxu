@@ -6,6 +6,19 @@
     <text class="mechanism" selectable>{{group.mechanism}}</text>
     <view class="detail"><text class="detail-title">伴随表现</text><text wx:for="{{group.manifestations}}" wx:for-item="line" wx:key="*this" class="detail-text" selectable>· {{line}}</text><text wx:if="{{!group.manifestations.length}}" class="detail-text">资料未提供</text></view>
     <view class="detail supporting"><text class="detail-title">判断依据</text><text wx:for="{{group.supporting}}" wx:for-item="line" wx:key="*this" class="detail-text" selectable>· {{line}}</text><text wx:if="{{!group.supporting.length}}" class="detail-text">资料未提供</text></view>
+    <view wx:if="{{group.solution.version === 1}}" class="detail solution">
+      <text class="detail-title">应对措施</text>
+      <block wx:if="{{group.solution.status === 'matched'}}">
+        <text class="detail-text solution-condition" selectable>请先核对是否符合此情形：{{group.solution.scenario}}</text>
+        <text class="detail-text" selectable>关联原因：{{group.solution.linked_cause}}</text>
+        <text class="note">{{group.solution.action_note}}</text>
+        <text wx:for="{{group.solution.steps}}" wx:for-item="step" wx:key="*this" class="detail-text solution-step" selectable>· {{step}}</text>
+        <text wx:if="{{group.solution.expected_result}}" class="detail-text" selectable>观察方向（不保证效果）：{{group.solution.expected_result}}</text>
+        <text class="detail-text" selectable>{{group.solution.escalation}}</text>
+        <text class="note">{{group.solution.review_note}}</text>
+      </block>
+      <text wx:else class="detail-text">{{group.solution.text}}</text>
+    </view>
   </view>
   <button wx:if="{{pageCount > 1}}" class="more" bindtap="nextGroup">换一组原因</button>
   <text wx:if="{{knowledge.review_note}}" class="note">{{knowledge.review_note}}</text>
