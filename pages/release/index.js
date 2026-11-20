@@ -19,8 +19,10 @@ Page({
   },
   onLoad(query) {
     if (query.source === 'guzi' && !query.id) {
-      this.getOpenerEventChannel().once('guziResult', ({ imagePath, account }) => {
+      this.getOpenerEventChannel().once('guziResult', ({ imagePath, account, resultSaved }) => {
         if (account !== accountKey('guzi-share') || !imagePath || this.data.images.length) return;
+        this._fromGuzi = true;
+        this._guziResultSaved = !!resultSaved;
         this.setData({ images: [imagePath], category: 'FUNNY' });
       });
     }
@@ -137,6 +139,19 @@ Page({
       wx.showToast({ title: '保存失败，请重试', icon: 'none' });
     }
   },
+  async finishPublish() {
+    if (!this._fromGuzi) { wx.navigateBack(); return; }
+    if (!this._guziResultSaved) {
+      const leave = await new Promise(resolve => wx.showModal({
+        title: '帖子已提交，头像还未保存',
+        content: '返回首页后，将无法在活动页再次下载本次头像。确定返回首页吗？',
+        confirmText: '返回首页', cancelText: '去保存',
+        success: result => resolve(result.confirm), fail: () => resolve(false),
+      }));
+      if (!leave) { wx.navigateBack(); return; }
+    }
+    wx.switchTab({ url: '/pages/home/index' });
+  },
   async release() {
     if (!requireSession()) return;
     if (this.data.saving) return;
@@ -186,7 +201,7 @@ Page({
         this.getOpenerEventChannel().emit('activityPostPublished', { id: post.id, status: post.status });
       }
       wx.showToast({ title: post.status === 'published' ? '发布成功' : '已提交审核' });
-      wx.navigateBack();
+      await this.finishPublish();
     } catch (e) {
       wx.showModal({ title: '暂未发布', content: errorText(e), showCancel: false });
     } finally {

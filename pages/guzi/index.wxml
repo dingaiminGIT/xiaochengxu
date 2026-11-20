@@ -1,5 +1,5 @@
 <view class="guzi-page {{inputFocused ? 'keyboard-open' : ''}}">
-  <page-header title="生成谷子" back />
+  <page-header title="生成谷子" back custom-back bind:back="leavePage" />
   <view class="guzi-body">
     <block wx:if="{{state === 'editing'}}">
       <view class="guzi-title">{{photoPath ? '这次，让它成为主角' : '让可爱，有“徽”可藏'}}</view>

@@ -8,10 +8,36 @@ Page({
     state: 'editing', photoPath: '', originalPath: '', prompt: DEFAULT_PROMPT,
     promptValid: true, promptCount: Array.from(DEFAULT_PROMPT).length, promptLimit: PROMPT_LIMIT,
     promptStyles: [], selectedStyle: '', stylesLoading: false, stylesError: false,
-    demoImage: DEMO_IMAGE, resultPath: '', isDemo: false, preview: 'badge',
+    demoImage: DEMO_IMAGE, resultPath: '', resultSaved: false, isDemo: false, preview: 'badge',
     choosing: false, saving: false, sharing: false, inputFocused: false, error: '', generationLabel: '正在生成卡通头像…',
   },
   onLoad() { this._alive = true; this.loadPromptStyles(); },
+  onShow() { this.updateLeaveAlert(); },
+  updateLeaveAlert() {
+    if (this.data.resultPath && !this.data.resultSaved) {
+      if (wx.enableAlertBeforeUnload) wx.enableAlertBeforeUnload({
+        message: '头像还未保存，离开后将无法再次下载。确定离开吗？',
+      });
+    } else if (wx.disableAlertBeforeUnload) wx.disableAlertBeforeUnload();
+  },
+  async leavePage() {
+    if (this._leaving) return;
+    this._leaving = true;
+    try {
+      if (this.data.resultPath && !this.data.resultSaved) {
+        const confirmed = await new Promise(resolve => wx.showModal({
+          title: '头像还未保存', content: '离开后将无法再次下载本次生成的头像，确定离开吗？',
+          confirmText: '仍然离开', cancelText: '留下保存',
+          success: result => resolve(result.confirm), fail: () => resolve(false),
+        }));
+        if (!confirmed || !this._alive) return;
+      }
+      if (wx.disableAlertBeforeUnload) wx.disableAlertBeforeUnload();
+      const options = { fail: () => this.updateLeaveAlert() };
+      if (getCurrentPages().length > 1) wx.navigateBack(options);
+      else wx.switchTab({ ...options, url: '/pages/home/index' });
+    } finally { this._leaving = false; }
+  },
   async loadPromptStyles() {
     if (this.data.stylesLoading) return;
     this.setData({ stylesLoading: true, stylesError: false });
@@ -123,7 +149,8 @@ Page({
       const result = await task.promise;
       if (!this._alive || this._task !== task) return;
       if (!result || !result.imagePath) throw new Error('未能获取生成结果，请重试');
-      this.setData({ state: 'success', resultPath: result.imagePath, isDemo: !!result.isDemo, preview: 'badge' });
+      this.setData({ state: 'success', resultPath: result.imagePath, isDemo: !!result.isDemo, preview: 'badge', resultSaved: false });
+      this.updateLeaveAlert();
     } catch (error) {
       if (this._alive && !error.cancelled) this.setData({ state: 'failed', error: error.message || '暂时无法生成，请稍后重试。' });
     } finally {
@@ -150,16 +177,20 @@ Page({
       }
       if (!this._alive || account !== accountKey('guzi-share')) return;
       const imagePath = this._shareImage.path;
+      if (wx.disableAlertBeforeUnload) wx.disableAlertBeforeUnload();
       await new Promise((resolve, reject) => wx.navigateTo({
         url: '/pages/release/index?source=guzi',
         success: result => {
-          result.eventChannel.emit('guziResult', { imagePath, account });
+          result.eventChannel.emit('guziResult', { imagePath, account, resultSaved: this.data.resultSaved });
           resolve();
         },
         fail: reject,
       }));
     } catch (_) {
-      if (this._alive) wx.showToast({ title: '暂时无法带入图片，请重试', icon: 'none' });
+      if (this._alive) {
+        this.updateLeaveAlert();
+        wx.showToast({ title: '暂时无法带入图片，请重试', icon: 'none' });
+      }
     } finally {
       if (this._alive) this.setData({ sharing: false });
     }
@@ -168,7 +199,8 @@ Page({
     if (this.data.saving || !this.data.resultPath) return;
     this.setData({ saving: true });
     try {
-      let filePath = this.data.resultPath;
+      const source = this.data.resultPath;
+      let filePath = source;
       if (/^https:\/\//.test(filePath)) {
         filePath = await new Promise((resolve, reject) => wx.downloadFile({
           url: filePath,
@@ -183,6 +215,10 @@ Page({
       }
       if (!this._alive) return;
       await new Promise((resolve, reject) => wx.saveImageToPhotosAlbum({ filePath, success: resolve, fail: reject }));
+      if (this._alive && this.data.resultPath === source) {
+        this.setData({ resultSaved: true });
+        this.updateLeaveAlert();
+      }
       if (this._alive) wx.showToast({ title: this.data.isDemo ? '示例已保存' : '已保存到相册', icon: 'success' });
     } catch (error) {
       if (!this._alive || /cancel/.test(error.errMsg || '')) return;
