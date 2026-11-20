@@ -2,14 +2,11 @@
 const fs = require('fs');
 const vm = require('vm');
 const assert = require('node:assert/strict');
-let methods, mapper, pet, modalChoice, navigated, requests, calls, replies, hasSessionValue;
+let methods, mapper, pet, navigated, requests, calls, replies, hasSessionValue;
 let petList = null;
 let responseBody;
 const wx = {
-  showModal: (options) => {
-    assert.equal(options.confirmText, '去绑定宠物');
-    options.success(modalChoice);
-  },
+  showModal: () => { throw new Error('chat must not force pet binding'); },
   navigateTo: (options) => {
     navigated = options.url;
   },
@@ -29,7 +26,7 @@ vm.runInNewContext(code + '\nexpose(chatMethods, mapChatMessage);', {
   api: async (path, method, data) => {
     calls.push({ path, method, data });
     if (path === '/cat-profiles') return { items: petList || (pet ? [pet] : []) };
-    if (method === 'POST') return { conversation: { id: 'c1', pet_id: pet.id } };
+    if (method === 'POST') return { conversation: { id: 'c1', pet_id: data.pet_id || null } };
     return replies;
   },
   requireSession: () => { if (hasSessionValue) return true; navigated = '/pages/my/info-edit/index?auth=1'; return false; },
@@ -74,10 +71,7 @@ function page() {
     data: { inputMessage: '家里玩具毛孩子不爱玩，求帮助。', composerImages: [], chatMessages: [], sending: false },
     setData(patch) {
       Object.assign(this.data, patch);
-      if (patch.showPetGate)
-        queueMicrotask(() =>
-          this.resolvePetGate({ currentTarget: { dataset: { action: modalChoice.confirm ? 'bind' : 'cancel' } } }),
-        );
+
     },
     scrollChat() {},
     saveConversation() {},
@@ -103,16 +97,31 @@ function page() {
   assert.equal(calls.length, 0);
   assert.equal(requests.length, 0);
   pet = null;
-  modalChoice = { cancel: true };
   let p = page();
   await p.sendMessage();
-  assert.equal(requests.length, 0);
-  assert.ok(p.data.inputMessage);
-  assert.equal(p.data.chatMessages.length, 0);
-  modalChoice = { confirm: true };
+  assert.equal(requests.length, 1);
+  assert.equal(navigated, '');
+  assert.equal(calls.find((c) => c.method === 'POST').data.pet_id, undefined);
+  assert.equal(p.data.chatMessages[1].text, '回答');
+  assert.equal(requests[0].data.client_context.recent_daily_records.length, 0);
+  p.data.inputMessage = '';
+  p.data.composerImages = ['local.jpg'];
   await p.sendMessage();
-  assert.equal(navigated, '/pages/pet-space/pet-edit');
-  assert.ok(p.data.inputMessage);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].data.attachments[0].type, 'chat_image');
+  assert.equal(navigated, '');
+  p.data.inputMessage = '看看这张照片';
+  p.data.composerImages = ['local.jpg'];
+  await p.sendMessage();
+  assert.equal(requests.length, 3);
+  assert.equal(requests[2].data.message, '看看这张照片');
+  // Binding after an unbound chat must create a pet-specific conversation.
+  pet = { id: 'pet1', name: '豆豆' };
+  p.data.boundPet = pet;
+  await p.sendCloudMessage({ message: '现在有档案了' }, '现在有档案了');
+  assert.equal(calls.filter((c) => c.method === 'POST').length, 2);
+  assert.equal(calls.filter((c) => c.method === 'POST')[1].data.pet_id, 'pet1');
+  p = page();
   pet = { id: 'pet1', name: '豆豆' };
   await p.refreshChatPet();
   assert.ok(p.data.inputMessage);
@@ -224,7 +233,7 @@ function page() {
   assert.equal(navigated, '/pages/pet-space/pet-edit');
   assert.ok(p.data.inputMessage);
   console.log(
-    'PASS: mandatory pet gate, cancel/bind preserve draft, bound chat API, typed options, multi-select, risk mapping, photo-only and captioned messages',
+    'PASS: unbound text/photo chat, optional binding, pet conversation transition, bound chat API, typed options, multi-select, risk mapping, photo-only and captioned messages',
   );
 })().catch((e) => {
   console.error(e);

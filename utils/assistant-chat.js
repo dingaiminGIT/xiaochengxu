@@ -498,7 +498,7 @@ export const chatMethods = {
     if (this.data.sending) return;
     const pet = this.data.chatPets.find((p) => p.id === e.currentTarget.dataset.id);
     if (!pet) return;
-    if (this._cloudPetId && this._cloudPetId !== pet.id) {
+    if (this._cloudConversationId && (this._cloudPetId || '') !== pet.id) {
       this.saveConversation();
       this._cloudConversationId = '';
       this._cloudPetId = '';
@@ -524,12 +524,6 @@ export const chatMethods = {
       },
     });
   },
-  resolvePetGate(event) {
-    const resolve = this._resolvePetGate;
-    this._resolvePetGate = null;
-    setModalData(this, { showPetGate: false });
-    if (resolve) resolve({ confirm: !!(event && event.currentTarget.dataset.action === 'bind') });
-  },
   focusChatInput() {
     this.setData({ composerFocused: true });
   },
@@ -540,18 +534,6 @@ export const chatMethods = {
     this._checkingPet = true;
     try {
       await this.refreshChatPet();
-      if (!this.data.boundPet) {
-        const choice = await new Promise((resolve) => {
-          this._resolvePetGate = resolve;
-          setModalData(this, { showPetGate: true, composerFocused: false, keyboardHeight: 0 });
-        });
-        if (choice.confirm) {
-          this.addChatPet();
-          return;
-        }
-        // Chat requires a server-side pet profile; cancelling keeps the draft intact.
-        return;
-      }
       const images = this.data.composerImages.slice();
       return this.sendCloudMessage({
         message: this.data.inputMessage.trim(),
@@ -604,19 +586,16 @@ export const chatMethods = {
     this._lastCloudText = displayText;
     this._lastCloudImages = images;
     const pet = this.data.boundPet;
-    if (!pet || !pet.id) {
-      this.addChatPet();
-      return;
-    }
+    const petId = pet?.id || '';
     this.setData({ sending: true, recognized: false, savedMode: false });
     try {
       await login();
       if (version !== this._sendVersion) return;
-      if (!this._cloudConversationId || (this._cloudPetId && this._cloudPetId !== pet.id)) {
-        const created = await api('/chat/conversations', 'POST', { pet_id: pet.id, scene: 'pet_manager' });
+      if (!this._cloudConversationId || (this._cloudPetId || '') !== petId) {
+        const created = await api('/chat/conversations', 'POST', { ...(petId ? { pet_id: petId } : {}), scene: 'pet_manager' });
         if (version !== this._sendVersion) return;
         this._cloudConversationId = created.conversation.id;
-        this._cloudPetId = created.conversation.pet_id || pet.id;
+        this._cloudPetId = created.conversation.pet_id || petId;
       }
       const attachments = [];
       if (!this._uploadedDraft || this._uploadedDraft.conversation !== this._cloudConversationId) {
@@ -649,7 +628,7 @@ export const chatMethods = {
           ...(attachments.length ? { attachments } : {}),
           client_context: {
             ...(payload.client_context || {}),
-            recent_daily_records: recentDailyRecords(pet.id), capabilities: { cloud_reminders_v1: true, scene_router_v1: true },
+            recent_daily_records: petId ? recentDailyRecords(petId) : [], capabilities: { cloud_reminders_v1: true, scene_router_v1: true },
           },
         },
         120000,

@@ -153,7 +153,6 @@ Page({
     showSymptomSheet: false,
     testing: false,
     recognized: false,
-    showPetGate: false,
     boundPet: null,
     inputMessage: '',
     userMessage: '',
@@ -722,7 +721,6 @@ Page({
   },
   onHide() {
     this._dailyRecordVersion = (this._dailyRecordVersion || 0) + 1;
-    if (this.data.showPetGate) this.resolvePetGate();
     if (this.data.sending) this.stopSending();
     this.saveConversation();
     setModalData(this, {
@@ -736,7 +734,6 @@ Page({
     });
   },
   onUnload() {
-    if (this._resolvePetGate) this.resolvePetGate();
     this._sendVersion = (this._sendVersion || 0) + 1;
     if (this._sendRequest && this._sendRequest.abort) this._sendRequest.abort();
   },

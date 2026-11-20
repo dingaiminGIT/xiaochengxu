@@ -6,7 +6,6 @@ const modalKeys = [
   'showSymptomSheet',
   'showIngredientSheet',
   'showExitModal',
-  'showPetGate',
   'showChatPetPicker',
   'showDailyRecord',
 ];
