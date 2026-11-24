@@ -1,3 +1,4 @@
+import { shouldShowGuziIntro, dismissGuziIntro } from '../../utils/guzi-intro';
 import { getMerchantIdentity } from '../../utils/merchant';
 import { listCommunityGoods, askAboutGoods } from '../../utils/goods';
 import { deviceRequest } from '../../utils/device-api';
@@ -49,6 +50,7 @@ Page({
     recordFields: [],
     recordTitle: '记一下',
     showRecord: false,
+    showGuziIntro: false,
     deviceCount: 0, deviceLoading: false, deviceError: '',
     form: { water: '', food: '', litter: '', litterShape: '' },
   },
@@ -62,6 +64,7 @@ Page({
     this.loadFeed();
   },
   onShow() {
+    this.showGuziIntroIfNeeded();
     syncModalTabBar(this);
     this.loadMerchantIdentity();
     const publishedKey = accountKey('goods-published');
@@ -373,7 +376,16 @@ Page({
     saveStore({ favorites: favorites.includes(id) ? favorites.filter((v) => v !== id) : [...favorites, id] });
     this.filterPosts();
   },
+  showGuziIntroIfNeeded() {
+    setModalData(this, { showGuziIntro: shouldShowGuziIntro() });
+  },
+  closeGuziIntro() {
+    dismissGuziIntro();
+    setModalData(this, { showGuziIntro: false });
+  },
+  stopIntroTouchMove() {},
   openGuzi() {
+    this.closeGuziIntro();
     wx.navigateTo({ url: '/pages/guzi/index', fail: () => wx.showToast({ title: '活动页面打开失败，请重试', icon: 'none' }) });
   },
   goRelease() {

@@ -48,3 +48,13 @@
 <text class="caption">填写本次值，保存后自动累加到今天。{{recordFields.length > 1 ? '可只填写需要记录的项目。' : ''}}</text>
 <view wx:for="{{recordFields}}" wx:key="key" class="form-field"><view class="record-field-heading"><text>{{item.label}}（{{item.unit}}）</text><text class="record-total">今日累计 {{item.total}} {{item.unit}}</text></view><view wx:if="{{item.key === 'litter'}}" class="litter-inputs"><view class="litter-count"><input type="number" data-key="litter" value="{{form.litter}}" placeholder="例如1次" aria-label="排便次数" bindinput="onRecordInput" /></view><view class="litter-shape"><input data-key="litterShape" value="{{form.litterShape}}" maxlength="60" placeholder="软, 硬, 血便, 毛球等" aria-label="便便形态，选填，默认正常" bindinput="onRecordInput" /></view></view><input wx:else type="digit" data-key="{{item.key}}" value="{{form[item.key]}}" placeholder="{{item.key === 'water' ? '例如 50' : '例如 20'}}" bindinput="onRecordInput" /></view>
 <text class="caption">记录保存在当前设备。</text><button class="primary-button" bindtap="saveRecord">保存本次记录</button></view>
+
+<view wx:if="{{showGuziIntro}}" class="guzi-intro-mask" catchtouchmove="stopIntroTouchMove">
+  <view class="guzi-intro-stack">
+    <view class="guzi-intro-card" role="dialog" aria-label="宠析 DIY 徽章活动">
+      <image class="guzi-intro-poster" src="/static/activity/guzi-intro.jpg" mode="widthFix" aria-label="上传猫咪照片，一键生成专属徽章，晒出你的成品，参与即可免费生成" />
+      <view class="guzi-intro-actions"><button class="guzi-intro-enter" bindtap="openGuzi">免费生成我的徽章</button></view>
+    </view>
+    <button class="guzi-intro-close" bindtap="closeGuziIntro" aria-label="关闭活动介绍"><view class="guzi-intro-close-disc"><p-icon name="close" tone="inverse" size="36" /></view></button>
+  </view>
+</view>

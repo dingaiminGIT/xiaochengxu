@@ -1,19 +1,20 @@
-<view class="guzi-page {{inputFocused ? 'keyboard-open' : ''}}">
-  <page-header title="生成谷子" back custom-back bind:back="leavePage" />
+<view class="guzi-page {{state === 'generating' ? 'generating-page' : ''}} {{state === 'success' ? 'result-page' : ''}} {{inputFocused ? 'keyboard-open' : ''}}">
+  <view class="guzi-header"><page-header title="生成谷子" back custom-back bind:back="leavePage" /></view>
   <view class="guzi-body">
     <block wx:if="{{state === 'editing'}}">
       <view class="guzi-title">{{photoPath ? '这次，让它成为主角' : '让可爱，有“徽”可藏'}}</view>
-      <view wx:if="{{!photoPath}}" class="example-card">
-        <image class="example-badge" src="{{demoImage}}" mode="aspectFill" />
-        <text class="small-label">58mm 圆形徽章</text>
-      </view>
       <view wx:if="{{!photoPath}}" class="guzi-card upload-card">
-        <text class="card-title">01 上传宠物照片</text>
-        <button class="upload-zone" bindtap="choosePhoto" loading="{{choosing}}" disabled="{{choosing}}">
-          <text class="upload-action">＋ 选择照片</text>
-          <text class="small-label">单只宠物、正脸清晰、耳朵完整</text>
+        <view class="badge-example">
+          <view class="badge-mockup">
+            <view class="badge-face"><image src="{{demoImage}}" mode="aspectFill" /><view class="badge-gloss"></view></view>
+          </view>
+          <text class="small-label">58mm 徽章效果</text>
+        </view>
+        <button class="upload-zone" bindtap="choosePhoto" disabled="{{choosing}}">
+          <view class="upload-plus"><p-icon name="plus" size="28" /></view>
+          <text class="upload-action">上传宠物照片</text>
+          <text class="upload-format">JPG / PNG · 10MB 内</text>
         </button>
-        <text class="small-label">JPG / PNG，单张不超过 10MB</text>
       </view>
       <view wx:else class="guzi-card photo-card">
         <view class="photo-wrap">
@@ -23,7 +24,7 @@
         <button class="icon-button replace-button" bindtap="choosePhoto" disabled="{{choosing}}" aria-label="更换照片"><image src="assets/replace.svg" /></button>
       </view>
       <view class="guzi-card prompt-card">
-        <text class="card-title">{{photoPath ? '' : '02 '}}描述你想要的头像</text>
+        <text class="card-title">自定义描述</text>
         <view wx:if="{{promptStyles.length || stylesLoading || stylesError}}" class="style-tags">
           <button wx:for="{{promptStyles}}" wx:key="id" class="style-tag {{selectedStyle === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPromptStyle" aria-label="{{item.name}}，{{selectedStyle === item.id ? '已选中' : '未选中'}}">{{item.name}}</button>
           <text wx:if="{{stylesLoading}}" class="small-label">加载风格中…</text>
@@ -35,7 +36,6 @@
       </view>
     </block>
     <block wx:elif="{{state === 'generating'}}">
-      <view class="guzi-title centered">可爱正在成形…</view>
       <view class="generation-card">
         <view class="scan-photo">
           <image src="{{photoPath}}" mode="aspectFill" />
@@ -45,16 +45,27 @@
       </view>
     </block>
     <block wx:elif="{{state === 'success'}}">
-      <view class="guzi-title">你的专属谷子，诞生啦</view>
+      <view class="result-heading">
+        <view class="guzi-title">你的专属谷子，诞生啦！</view>
+        <image class="title-underline" src="assets/result/underline.svg" mode="aspectFit" aria-hidden="true" />
+        <image class="title-celebrate" src="assets/result/celebrate.svg" mode="aspectFit" aria-hidden="true" />
+        <text class="result-subtitle">把爱宠变成独一无二的徽章吧～</text>
+        <image class="heading-paw" src="assets/result/paw-purple.svg" mode="aspectFit" aria-hidden="true" />
+      </view>
       <text wx:if="{{isDemo}}" class="demo-label">示例预览</text>
       <view class="preview-tabs">
-        <button class="{{preview === 'avatar' ? 'active' : ''}}" data-mode="avatar" bindtap="setPreview">头像</button>
-        <button class="{{preview === 'badge' ? 'active' : ''}}" data-mode="badge" bindtap="setPreview">58mm 徽章</button>
+        <button class="{{preview === 'avatar' ? 'active' : ''}}" data-mode="avatar" bindtap="setPreview" aria-label="头像，{{preview === 'avatar' ? '已选中' : '未选中'}}"><image src="assets/result/user-round.svg" mode="aspectFit" />头像</button>
+        <button class="{{preview === 'badge' ? 'active' : ''}}" data-mode="badge" bindtap="setPreview" aria-label="58mm 徽章，{{preview === 'badge' ? '已选中' : '未选中'}}"><image src="assets/result/award.svg" mode="aspectFit" />58mm 徽章</button>
       </view>
       <view class="result-card">
-        <image class="result-image {{preview === 'badge' ? 'badge' : ''}}" src="{{resultPath}}" mode="aspectFill" />
+        <view class="result-artwork {{preview === 'badge' ? 'badge-preview' : 'avatar-preview'}}">
+          <image class="result-image {{preview === 'badge' ? 'badge' : ''}}" src="{{resultPath}}" mode="{{preview === 'badge' ? 'aspectFill' : 'aspectFit'}}" />
+          <view wx:if="{{preview === 'badge'}}" class="result-gloss"></view>
+          <image class="badge-celebrate" src="assets/result/badge-spark.svg" mode="aspectFit" aria-hidden="true" />
+          <image class="result-paw" src="assets/result/paw-pink.svg" mode="aspectFit" aria-hidden="true" />
+        </view>
         <view wx:if="{{preview === 'badge'}}" class="dimension"><view></view><text>58 mm</text><view></view></view>
-        <text wx:else class="small-label">1 : 1 头像</text>
+        <text wx:else class="avatar-dimension">1 : 1 头像</text>
       </view>
     </block>
     <block wx:elif="{{state === 'failed'}}">
@@ -68,11 +79,15 @@
     <button wx:elif="{{state === 'generating'}}" class="primary" disabled>正在生成，请稍候</button>
     <block wx:elif="{{state === 'success'}}">
       <view class="result-actions">
-        <button class="secondary" loading="{{saving}}" disabled="{{saving || sharing}}" bindtap="saveImage">{{isDemo ? '保存示例头像' : '保存头像'}}</button>
-        <button class="primary" loading="{{sharing}}" disabled="{{sharing || saving}}" bindtap="showOff">秀一下</button>
+        <button class="secondary" loading="{{saving}}" disabled="{{saving || sharing}}" bindtap="saveImage"><image wx:if="{{!saving}}" class="result-action-icon" src="assets/result/download.svg" mode="aspectFit" />{{isDemo ? '保存示例头像' : '保存头像'}}</button>
+        <button class="primary" loading="{{sharing}}" disabled="{{sharing || saving}}" bindtap="showOff"><image wx:if="{{!sharing}}" class="result-action-icon" src="assets/result/wand-sparkles.svg" mode="aspectFit" />秀一下</button>
       </view>
-      <button class="secondary" bindtap="recreate" disabled="{{sharing}}">重新创作</button>
+      <button class="secondary" bindtap="recreate" disabled="{{sharing}}"><image class="result-action-icon" src="assets/result/rotate-cw.svg" mode="aspectFit" />重新创作</button>
     </block>
     <block wx:else><button class="primary" bindtap="generate">重新尝试</button><button class="secondary" bindtap="recreate">重新创作</button></block>
+  </view>
+  <view wx:if="{{state === 'success'}}" class="result-bottom-art" aria-hidden="true">
+    <image class="result-waves" src="assets/result/cat-waves.svg" mode="scaleToFill" />
+    <image class="result-yarn" src="assets/result/yarn.svg" mode="aspectFit" />
   </view>
 </view>

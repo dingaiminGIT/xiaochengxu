@@ -71,11 +71,13 @@ async function run() {
 
   let definition, resolveTask, rejectTask, calls = 0, navigations = [], toasts = [], albumPath, cancelCalls = 0;
   const wx = {
+    getSetting: args => args.success({ authSetting: { 'scope.writePhotosAlbum': true } }),
     hideKeyboard() {}, pageScrollTo() {}, showToast: args => toasts.push(args.title),
     navigateTo: args => navigations.push(args),
     chooseMedia: args => args.fail({ errMsg: 'chooseMedia:fail cancel' }),
     env: { USER_DATA_PATH: '/user' },
-    getFileSystemManager: () => ({ copyFile: args => args.success({}) }),
+    getImageInfo: args => args.success({ path: args.src, type: 'jpeg', width: 1024, height: 1024 }),
+    getFileSystemManager: () => ({ copyFile: args => args.success({}), unlink() {} }),
     saveImageToPhotosAlbum: args => { albumPath = args.filePath; args.success({}); },
   };
   vm.runInNewContext(read('pages/guzi/index.js'), {
@@ -121,7 +123,7 @@ async function run() {
   await first;
   assert.equal(page.data.state, 'success');
   await page.saveImage();
-  assert.equal(albumPath, '/user/guzi-example.jpg');
+  assert.match(albumPath, /^\/user\/guzi-album-\d+\.jpg$/);
   assert.ok(toasts.includes('示例已保存'));
   page.recreate();
   assert.equal(page.data.photoPath, 'cropped.jpg');
@@ -136,6 +138,29 @@ async function run() {
   resolveTask({ imagePath: 'new.jpg', isDemo: false });
   await retry;
   assert.equal(page.data.resultPath, 'new.jpg');
+  // Extensionless downloads are copied with their actual image type before saving.
+  let copied, removed;
+  wx.getImageInfo = args => args.success({ path: args.src, type: 'png', width: 1024, height: 1024 });
+  wx.getFileSystemManager = () => ({ copyFile(args) { copied = args; args.success(); }, unlink(args) { removed = args.filePath; } });
+  page.data.resultPath = 'wxfile://tmp_generated';
+  await page.saveImage();
+  assert.equal(copied.srcPath, 'wxfile://tmp_generated');
+  assert.match(albumPath, /\.png$/);
+  assert.equal(removed, albumPath);
+  assert.equal(page.data.resultSaved, true);
+  let permissionModal;
+  wx.showModal = args => { permissionModal = args; args.success?.({ confirm: false }); };
+  wx.saveImageToPhotosAlbum = args => args.fail({ errMsg: 'saveImageToPhotosAlbum:fail system permission denied' });
+  page.data.resultSaved = false;
+  await page.saveImage();
+  assert.equal(permissionModal.confirmText, '去设置');
+  assert.equal(page.data.resultSaved, false);
+  assert.equal(page.data.saving, false);
+  wx.saveImageToPhotosAlbum = () => assert.fail('unreadable image must not reach the album');
+  wx.getImageInfo = args => args.fail({ errMsg: 'getImageInfo:fail file not found' });
+  await page.saveImage();
+  assert.match(permissionModal.content, /图片读取失败/);
+  assert.equal(page.data.saving, false);
   page.recreate();
   page.recropPhoto();
   assert.equal(navigations.at(-1).url, '/pages/guzi/crop');

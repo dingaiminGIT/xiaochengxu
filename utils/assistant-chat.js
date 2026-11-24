@@ -143,6 +143,11 @@ export function mapChatMessage(message) {
       .map((a) => `/api/miniprogram/pet-images/${a.image_id}`),
     guardianReport,
     healthKnowledge: message.role === 'assistant' && message.result?.health_knowledge?.version === 1 ? message.result.health_knowledge : null,
+    photoQuestions: message.role === 'assistant' && message.result?.photo_guidance?.version === 1
+      && Array.isArray(message.result.photo_guidance.options)
+      ? message.result.photo_guidance.options.slice(0, 3)
+        .map((option, index) => ({ question: option?.question, index }))
+        .filter((option) => typeof option.question === 'string' && option.question.trim()) : [],
     contextQuestions: message.role === 'assistant' && message.result?.context_answer?.version === 1
       && Array.isArray(message.result.context_answer.questions)
       ? message.result.context_answer.questions.filter((q) => typeof q === 'string' && q.trim() && q.length <= 60).slice(0, 3) : [],
@@ -224,6 +229,17 @@ export const chatMethods = {
     const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);
     const question = message?.contextQuestions?.[Number(event.currentTarget.dataset.index)];
     if (question) return this.askTaskQuestion({ currentTarget: event.currentTarget, detail: { question } });
+  },
+  askPhotoQuestion(event) {
+    if (this.data.sending || !requireSession()) return;
+    const { id, index } = event.currentTarget.dataset;
+    const message = this.data.chatMessages.find((item) => item.id === id);
+    const option = message?.photoQuestions?.find((item) => item.index === Number(index));
+    if (!option) return;
+    if (this._cloudPetId && this._cloudPetId !== this.data.boundPet?.id) return;
+    return this.sendCloudMessage({ interaction: {
+      slot: 'guardian_photo_question', value: `${message.id}:${option.index}`,
+    } }, option.question);
   },
   askProductQuestion(event) {
     const message = this.data.chatMessages.find((item) => item.id === event.currentTarget.dataset.id);

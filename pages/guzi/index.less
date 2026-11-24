@@ -6,12 +6,21 @@ page { background: #f8f5fc; }
 .guzi-card { position: relative; padding: 30rpx; margin-bottom: 30rpx; border-radius: 42rpx; background: #fff; }
 .card-title { display: block; margin-bottom: 20rpx; font-size: 30rpx; line-height: 1.5; font-weight: 700; }
 .small-label { display: block; color: #82758e; font-size: 23rpx; line-height: 1.5; }
-.example-card, .generation-card, .result-card { border-radius: 42rpx; background: #eee8fc; padding: 30rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; margin-bottom: 30rpx; }
-.example-badge { width: 212rpx; height: 212rpx; border-radius: 50%; }
+.generation-card, .result-card { border-radius: 42rpx; background: #eee8fc; padding: 30rpx; display: flex; flex-direction: column; align-items: center; gap: 24rpx; margin-bottom: 30rpx; }
+
 .guzi-page button { box-sizing: border-box; margin: 0; }
 .guzi-page button::after { border: 0; }
-.upload-zone { width: 100%; padding: 28rpx; margin-bottom: 20rpx !important; border-radius: 30rpx; background: #f8f5fc; text-align: left; line-height: 1.5; }
-.upload-action { display: block; color: #7460d9; font-size: 34rpx; margin-bottom: 8rpx; font-weight: 600; }
+.upload-card { display: flex; align-items: stretch; gap: 24rpx; padding: 30rpx 24rpx; }
+.badge-example { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24rpx; padding: 10rpx 0; }
+.badge-example .small-label { font-size: 22rpx; }
+.badge-mockup { width: 224rpx; height: 224rpx; box-sizing: border-box; padding: 7rpx; border-radius: 50%; transform: rotate(-12deg); background: linear-gradient(135deg, #fff 5%, #d9d6e2 28%, #fff 48%, #aaa3b8 76%, #f5f3fa 94%); box-shadow: 4rpx 10rpx 0 #b2a9c3, 8rpx 18rpx 26rpx rgba(60,42,91,.22); }
+.badge-face { position: relative; width: 100%; height: 100%; border-radius: 50%; overflow: hidden; box-shadow: inset 0 0 10rpx rgba(42,28,70,.28); }
+.badge-face image { display: block; width: 100%; height: 100%; }
+.badge-gloss { position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,.75), rgba(255,255,255,.08) 32%, transparent 48%, rgba(45,28,67,.16) 88%); box-shadow: inset 2rpx 3rpx 6rpx rgba(255,255,255,.9), inset -3rpx -5rpx 9rpx rgba(53,38,73,.23); }
+.guzi-page .upload-zone { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28rpx 8rpx; border: 2rpx dashed #c9bff0; border-radius: 30rpx; background: #f8f5fc; text-align: center; line-height: 1.5; }
+.upload-plus { width: 76rpx; height: 76rpx; margin-bottom: 22rpx; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7460d9; background: #eee8fc; }
+.upload-action { display: block; color: #7460d9; font-size: 28rpx; font-weight: 600; }
+.upload-format { display: block; margin-top: 12rpx; font-size: 20rpx; color: #82758e; }
 .photo-card { display: flex; justify-content: center; padding: 38rpx 30rpx; }
 .photo-wrap, .scan-photo { position: relative; width: 430rpx; height: 430rpx; border-radius: 36rpx; overflow: hidden; }
 .selected-photo, .scan-photo > image { display: block; width: 100%; height: 100%; }
@@ -23,9 +32,9 @@ page { background: #f8f5fc; }
 .word-count { display: block; text-align: right; margin-top: 20rpx; font-size: 23rpx; color: #82758e; }
 .field-error { display: block; margin-top: 12rpx; color: #ae4c50; font-size: 24rpx; }
 .generation-label { color: #7460d9; font-size: 30rpx; font-weight: 600; text-align: center; width: 100%; }
-.scan-shade { position: absolute; inset: 0; background: rgba(71,48,122,.18); }
-.scan-light { position: absolute; left: 0; top: -35%; width: 100%; height: 35%; background: linear-gradient(180deg, rgba(224,212,255,0), rgba(239,232,255,.35) 45%, rgba(255,255,255,.75) 75%, rgba(224,212,255,0)); animation: guzi-scan 1.8s linear infinite; }
-@keyframes guzi-scan { from { top: -35%; } to { top: 100%; } }
+.scan-shade { position: absolute; inset: 0; background: rgba(37,28,57,.72); }
+.scan-light { position: absolute; left: -50%; top: 0; width: 200%; height: 28%; transform: translateY(-300%) rotate(-30deg); background: linear-gradient(180deg, rgba(224,212,255,0), rgba(239,232,255,.35) 45%, rgba(255,255,255,.75) 75%, rgba(224,212,255,0)); animation: guzi-scan 1.8s linear infinite; }
+@keyframes guzi-scan { from { transform: translateY(-300%) rotate(-30deg); } to { transform: translateY(650%) rotate(-30deg); } }
 .preview-tabs { display: flex; padding: 12rpx; margin-bottom: 24rpx; border-radius: 30rpx; background: #fff; }
 .preview-tabs button { width: 50%; padding: 12rpx 0; border-radius: 22rpx; background: transparent; color: #82758e; font-size: 27rpx; line-height: 1.6; }
 .preview-tabs .active { background: #f3efff; color: #7460d9; font-weight: 600; }
@@ -51,3 +60,50 @@ page { background: #f8f5fc; }
 .style-tags { display: flex; flex-wrap: wrap; gap: 16rpx; margin-bottom: 24rpx; }
 .guzi-page .style-tag { padding: 12rpx 28rpx; border-radius: 999rpx; background: #f3efff; color: #82758e; font-size: 26rpx; line-height: 1.5; }
 .guzi-page .style-tag.active { background: #7460d9; color: #fff; }
+
+.generating-page { display: flex; flex-direction: column; height: 100vh; min-height: 0; padding-bottom: 0; overflow: hidden; }
+.generating-page .guzi-header { flex-shrink: 0; }
+.generating-page .guzi-body { display: flex; flex: 1; min-height: 0; padding: 16rpx 45rpx 28rpx; }
+.generating-page .generation-card { flex: 1; min-width: 0; margin: 0; padding: 32rpx 24rpx; justify-content: center; gap: 36rpx; box-sizing: border-box; }
+.generating-page .scan-photo { flex-shrink: 0; max-width: 42vh; max-height: 42vh; }
+.generating-page .guzi-footer { position: relative; flex-shrink: 0; }
+
+/* Result screen: decorations remain separate from the downloaded avatar. */
+.result-page { display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 0; background: linear-gradient(180deg, #f0eafe 0%, #fcfaff 70%, #fff 100%); }
+.result-page .guzi-header { flex-shrink: 0; }
+.result-page .guzi-body { flex: 1; display: flex; flex-direction: column; padding-top: 44rpx; padding-bottom: 0; }
+.result-heading { position: relative; flex-shrink: 0; margin-bottom: 38rpx; padding-bottom: 6rpx; }
+.result-heading .guzi-title { position: relative; z-index: 1; margin-bottom: 26rpx; font-size: 46rpx; line-height: 1.45; color: #382b59; }
+.result-subtitle { display: block; color: #8c829b; font-size: 28rpx; line-height: 1.5; }
+.title-underline { position: absolute; left: 0; top: 70rpx; width: 201rpx; height: 13rpx; }
+.title-celebrate { position: absolute; right: 40rpx; top: -20rpx; width: 52rpx; height: 56rpx; }
+.heading-paw { position: absolute; right: 0; bottom: -12rpx; width: 73rpx; height: 64rpx; opacity: .75; }
+.result-page .preview-tabs { flex-shrink: 0; margin: 0; padding: 8rpx; border-radius: 50rpx; }
+.result-page .preview-tabs button { display: flex; align-items: center; justify-content: center; gap: 16rpx; min-height: 74rpx; padding: 12rpx 0; border-radius: 46rpx; font-size: 28rpx; }
+.result-page .preview-tabs button image { width: 36rpx; height: 36rpx; }
+.result-page .preview-tabs .active { background: #e9e0fc; color: #6650c8; }
+.result-page .result-card { flex: 1; justify-content: center; min-height: 640rpx; padding: 48rpx 0; margin: 0; border-radius: 0; background: transparent; gap: 34rpx; box-sizing: border-box; }
+.result-artwork { position: relative; width: 550rpx; height: 550rpx; flex-shrink: 0; }
+.result-page .result-image { display: block; width: 100%; height: 100%; border-radius: 28rpx; background: #fff; box-shadow: 0 18rpx 42rpx rgba(140,106,195,.20); }
+.result-page .result-image.badge { border-radius: 50%; border: 18rpx solid #fff; }
+.result-gloss { position: absolute; inset: 18rpx; border-radius: 50%; background: linear-gradient(135deg, rgba(255,255,255,.4), transparent 45%, rgba(255,255,255,.06)); pointer-events: none; }
+.badge-celebrate { position: absolute; top: 14rpx; left: -20rpx; width: 63rpx; height: 63rpx; pointer-events: none; }
+.result-paw { position: absolute; right: -16rpx; bottom: 14rpx; width: 112rpx; height: 105rpx; pointer-events: none; }
+.result-page .dimension { width: 504rpx; gap: 30rpx; font-size: 30rpx; color: #77658d; line-height: 1.4; }
+.result-page .dimension view { background: #b7a3d9; }
+.avatar-dimension { color: #77658d; font-size: 28rpx; line-height: 1.5; }
+.result-page .guzi-footer { position: relative; flex-shrink: 0; background: transparent; gap: 22rpx; padding: 16rpx 45rpx 30rpx; }
+.result-page .guzi-footer button { gap: 18rpx; border-radius: 46rpx; font-size: 32rpx; }
+.result-page .guzi-footer .primary { box-shadow: 0 8rpx 20rpx rgba(116,96,217,.2); }
+.result-page .guzi-footer .secondary { color: #55418f; }
+.result-action-icon { width: 42rpx; height: 42rpx; flex-shrink: 0; }
+.result-bottom-art { position: relative; flex-shrink: 0; height: calc(78rpx + env(safe-area-inset-bottom)); min-height: 112rpx; pointer-events: none; overflow: hidden; }
+.result-waves { position: absolute; inset: 0; width: 100%; height: 100%; }
+.result-yarn { position: absolute; left: 67rpx; top: 6rpx; width: 194rpx; height: 90rpx; }
+@media (max-height: 700px) {
+  .result-page .guzi-body { padding-top: 24rpx; }
+  .result-heading { margin-bottom: 26rpx; }
+  .result-page .result-card { min-height: 520rpx; padding: 30rpx 0; }
+  .result-artwork { width: 450rpx; height: 450rpx; }
+  .result-page .dimension { width: 420rpx; }
+}

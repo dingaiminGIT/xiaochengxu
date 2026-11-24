@@ -12,7 +12,10 @@ Page({
     choosing: false, saving: false, sharing: false, inputFocused: false, error: '', generationLabel: '正在生成卡通头像…',
   },
   onLoad() { this._alive = true; this.loadPromptStyles(); },
-  onShow() { this.updateLeaveAlert(); },
+  onShow() {
+    this.updateLeaveAlert();
+    if (this._albumSettingsReturn) this._albumSettingsReturn();
+  },
   updateLeaveAlert() {
     if (this.data.resultPath && !this.data.resultSaved) {
       if (wx.enableAlertBeforeUnload) wx.enableAlertBeforeUnload({
@@ -70,6 +73,7 @@ Page({
   },
   onUnload() {
     this._alive = false;
+    if (this._albumSettingsReturn) this._albumSettingsReturn();
     if (this._task) this._task.cancel();
   },
   onShareAppMessage() { return shareCard('给毛孩子生成专属谷子', '/pages/guzi/index'); },
@@ -195,10 +199,66 @@ Page({
       if (this._alive) this.setData({ sharing: false });
     }
   },
+  openAlbumSettings(system = false) {
+    return new Promise((resolve, reject) => wx.showModal({
+      title: '允许保存到相册',
+      content: system ? '微信还没有系统相册权限，请前往手机设置开启。' : '请开启“保存到相册”，返回后将继续保存头像。',
+      confirmText: '去设置',
+      success: choice => {
+        if (!choice.confirm || !this._alive) { resolve(false); return; }
+        // These APIs require a user gesture: call directly inside the modal callback.
+        if (!system) {
+          wx.openSetting({
+            success: updated => {
+              const granted = updated.authSetting?.['scope.writePhotosAlbum'] === true;
+              if (!granted && this._alive) wx.showToast({ title: '未开启相册权限，图片尚未保存', icon: 'none' });
+              resolve(this._alive && granted);
+            }, fail: reject,
+          });
+          return;
+        }
+        if (!wx.openAppAuthorizeSetting) {
+          wx.showToast({ title: '请在手机设置中开启微信的相册权限', icon: 'none' });
+          resolve(false); return;
+        }
+        this._albumSettingsReturn = () => {
+          this._albumSettingsReturn = null;
+          try {
+            const granted = this._alive && wx.getAppAuthorizeSetting().albumAuthorized !== 'denied';
+            if (!granted && this._alive) wx.showToast({ title: '系统相册权限未开启，图片尚未保存', icon: 'none' });
+            resolve(granted);
+          } catch (error) { reject(error); }
+        };
+        wx.openAppAuthorizeSetting({
+          // Success means settings opened, not that the user has returned.
+          fail: error => { this._albumSettingsReturn = null; reject(error); },
+        });
+      }, fail: reject,
+    }));
+  },
+  async ensureAlbumPermission() {
+    const scope = 'scope.writePhotosAlbum';
+    const system = wx.getAppAuthorizeSetting ? wx.getAppAuthorizeSetting() : {};
+    if (system.albumAuthorized === 'denied' && !await this.openAlbumSettings(true)) return false;
+    const settings = await new Promise((resolve, reject) => wx.getSetting({ success: resolve, fail: reject }));
+    if (!this._alive) return false;
+    const granted = (settings.authSetting || {})[scope];
+    if (granted === true) return true;
+    if (granted === false) return this.openAlbumSettings();
+    // WeChat presents its native privacy/permission dialogs here. Do not swallow
+    // authorize:fail errors: the API name itself contains the substring "auth".
+    await new Promise((resolve, reject) => wx.authorize({ scope, success: resolve, fail: reject }));
+    return this._alive;
+  },
   async saveImage() {
     if (this.data.saving || !this.data.resultPath) return;
     this.setData({ saving: true });
+    let albumFile;
+    let retrySave = false;
+    let saveStage = 'permission';
     try {
+      if (!await this.ensureAlbumPermission()) return;
+      saveStage = 'prepare';
       const source = this.data.resultPath;
       let filePath = source;
       if (/^https:\/\//.test(filePath)) {
@@ -207,13 +267,19 @@ Page({
           success: r => r.statusCode === 200 ? resolve(r.tempFilePath) : reject(new Error('图片下载失败')),
           fail: reject,
         }));
-      } else if (filePath === DEMO_IMAGE) {
-        // Album APIs require a writable local file, not a packaged resource path.
-        const target = `${wx.env.USER_DATA_PATH}/guzi-example.jpg`;
-        await new Promise((resolve, reject) => wx.getFileSystemManager().copyFile({ srcPath: filePath, destPath: target, success: resolve, fail: reject }));
-        filePath = target;
       }
+      // Download paths may have no image extension. Resolve and validate the
+      // actual file, then give the album API an explicitly typed local path.
+      const info = await new Promise((resolve, reject) => wx.getImageInfo({ src: filePath, success: resolve, fail: reject }));
+      const extension = { jpeg: 'jpg', jpg: 'jpg', png: 'png' }[String(info.type).toLowerCase()];
+      if (!extension) throw new Error('图片格式暂不支持保存到相册');
+      albumFile = `${wx.env.USER_DATA_PATH}/guzi-album-${Date.now()}.${extension}`;
+      await new Promise((resolve, reject) => wx.getFileSystemManager().copyFile({
+        srcPath: info.path || filePath, destPath: albumFile, success: resolve, fail: reject,
+      }));
+      filePath = albumFile;
       if (!this._alive) return;
+      saveStage = 'album';
       await new Promise((resolve, reject) => wx.saveImageToPhotosAlbum({ filePath, success: resolve, fail: reject }));
       if (this._alive && this.data.resultPath === source) {
         this.setData({ resultSaved: true });
@@ -221,12 +287,27 @@ Page({
       }
       if (this._alive) wx.showToast({ title: this.data.isDemo ? '示例已保存' : '已保存到相册', icon: 'success' });
     } catch (error) {
-      if (!this._alive || /cancel/.test(error.errMsg || '')) return;
-      if (/auth|deny|denied|authorize/.test(error.errMsg || '')) {
-        wx.showModal({ title: '允许保存到相册', content: '请在设置中开启相册权限。', confirmText: '去设置', success: r => { if (r.confirm) wx.openSetting({}); } });
-      } else wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+      const reason = error.errMsg || error.message || '';
+      const detail = reason.replace(/^[^:]+:fail\s*/i, '');
+      const diagnostic = { stage: saveStage, errMsg: reason, errno: error.errno, errCode: error.errCode };
+      console.warn('guzi save image failed', diagnostic);
+      if (wx.getRealtimeLogManager) wx.getRealtimeLogManager().warn('guzi album save', diagnostic);
+      if (!this._alive) return;
+      if (Number(error.errno) === 112 || /api scope is not declared|privacy api banned/i.test(detail)) {
+        wx.showModal({ title: '暂时无法保存', content: '小程序的相册功能尚未完成隐私配置，请联系管理员处理。生成的头像仍保留在当前页面。', showCancel: false });
+      } else if ([103, 104].includes(Number(error.errno)) || /auth deny|auth denied|authorize no response|user den(?:y|ied)|cancel|privacy.*(?:deny|disagree)|privacy permission is not authorized/i.test(detail)) {
+        wx.showToast({ title: '未获得相册授权，图片尚未保存', icon: 'none' });
+      } else if (/system.*(?:denied|permission)|permission denied/i.test(detail)) {
+        if (await this.openAlbumSettings(true)) retrySave = true;
+      } else {
+        wx.showModal({ title: '保存未完成', content: `${saveStage === 'prepare' ? '图片读取失败' : saveStage === 'permission' ? '相册授权失败' : '相册保存失败'}，请重试。\n${reason.slice(0, 200)}${error.errno != null ? `（${error.errno}）` : ''}`, showCancel: false });
+      }
     } finally {
+      if (albumFile) {
+        try { wx.getFileSystemManager().unlink({ filePath: albumFile, fail() {} }); } catch (_) { /* Saving must unlock even if cleanup fails. */ }
+      }
       if (this._alive) this.setData({ saving: false });
     }
+    if (retrySave && this._alive) return this.saveImage();
   },
 });

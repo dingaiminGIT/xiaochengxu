@@ -1,6 +1,7 @@
 // Custom tab bars live outside page stacking contexts. Hide them while a modal is open.
 const modalKeys = [
   'showRecord',
+  'showGuziIntro',
   'showDevices',
   'showFoodSheet',
   'showSymptomSheet',

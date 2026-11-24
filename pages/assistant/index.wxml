@@ -89,6 +89,7 @@
 </view><text wx:elif="{{item.productRecommendations.length}}">按本次需求找到这些产品推荐资料：</text><view wx:elif="{{item.blocks.length}}" class="assistant-blocks"><view wx:for="{{item.blocks}}" wx:for-item="block" wx:key="index" class="assistant-block"><text selectable><text wx:if="{{block.marker}}">{{block.marker}} </text><text wx:for="{{block.segments}}" wx:for-item="segment" wx:key="index" class="{{segment.strong ? 'assistant-emphasis' : ''}}">{{segment.text}}</text></text></view></view><text wx:else selectable>{{item.text}}</text><text wx:if="{{item.riskReasons}}" class="risk-reasons">需要留意：{{item.riskReasons}}</text>
 <text wx:if="{{item.limitedInfo}}" class="chat-limited">信息有限，可补充情况让回答更准确。</text>
 <view wx:if="{{item.contextQuestions.length}}" class="knowledge-questions"><button wx:for="{{item.contextQuestions}}" wx:for-item="question" wx:key="*this" class="knowledge-question" data-id="{{item.id}}" data-index="{{index}}" bindtap="askContextQuestion" disabled="{{sending}}">{{question}}</button></view>
+<view wx:if="{{item.photoQuestions.length}}" class="knowledge-questions"><button wx:for="{{item.photoQuestions}}" wx:for-item="option" wx:key="index" class="knowledge-question" data-id="{{item.id}}" data-index="{{option.index}}" bindtap="askPhotoQuestion" disabled="{{sending}}">{{option.question}}</button></view>
 <view wx:if="{{item.response_type === 'processing'}}" class="chat-limited">正在识别食品投稿，可在投稿页查看自动更新的结果。</view>
 </view>
 <view wx:if="{{item.result.ingredient_guide.reupload}}" class="ingredient-guide-upload">

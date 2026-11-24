@@ -228,12 +228,51 @@ function page() {
   assert.equal(p.data.chatMessages[1].cloudError, true);
   assert.equal(p.data.inputMessage, '保留草稿');
   responseBody = undefined;
+  // Photo follow-ups must remain anchored to the original image message.
+  const photoReply = {
+    id: 'a'.repeat(32), role: 'assistant', content: '照片里是一只浅橘色长毛猫。',
+    result: { photo_guidance: { version: 1, options: [
+      { question: '这种被毛的猫平时怎么梳理？', domain: 'care', keyword: '梳毛' },
+      { question: '猫的饮食和毛发状态有什么关系？', domain: 'selection', keyword: '毛发' },
+    ] } },
+  };
+  for (const body of [{ ok: true, message: photoReply }, { ok: true, messages: [photoReply] }]) {
+    responseBody = body;
+    pet = null; p = page();
+    await p.sendCloudMessage({ message: '看看照片' }, '看看照片');
+    assert.equal(p.data.chatMessages[1].photoQuestions.length, 2);
+    assert.equal(p.data.chatMessages[1].photoQuestions[0].question, photoReply.result.photo_guidance.options[0].question);
+  }
+  // History uses the same mapper; older photo bubbles remain clickable.
+  p.data.chatMessages = [mapper(JSON.parse(JSON.stringify(photoReply))), mapper(summary)];
+  const photoEvent = (index) => ({ currentTarget: { dataset: { id: photoReply.id, index } } });
+  responseBody = { ok: true, message: summary };
+  await p.askPhotoQuestion(photoEvent(1));
+  assert.equal(requests.at(-1).data.interaction.slot, 'guardian_photo_question');
+  assert.equal(requests.at(-1).data.interaction.value, `${photoReply.id}:1`);
+  assert.equal(p.data.chatMessages[2].text, photoReply.result.photo_guidance.options[1].question);
+  const requestCount = requests.length;
+  await p.askPhotoQuestion(photoEvent(99));
+  p.data.sending = true;
+  await p.askPhotoQuestion(photoEvent(0));
+  p.data.sending = false;
+  p._cloudPetId = 'another-pet';
+  await p.askPhotoQuestion(photoEvent(0));
+  assert.equal(requests.length, requestCount);
+  const malformedPhoto = { ...photoReply, result: { photo_guidance: { version: 1, options: [null, { question: '有效问题' }] } } };
+  assert.equal(mapper(malformedPhoto).photoQuestions[0].index, 1);
+  assert.equal(mapper({ ...photoReply, role: 'user' }).photoQuestions.length, 0);
+  assert.equal(mapper({ ...photoReply, result: { photo_guidance: { version: 9, options: [] } } }).photoQuestions.length, 0);
+  assert.equal(mapper({ ...photoReply, result: { photo_guidance: { version: 1, options: {} } } }).photoQuestions.length, 0);
+  const template = fs.readFileSync('pages/assistant/index.wxml', 'utf8');
+  assert.match(template, /wx:for="{{item.photoQuestions}}"[^>]*data-index="{{option.index}}"[^>]*bindtap="askPhotoQuestion"/);
+  responseBody = undefined;
   petList = []; pet = null; p = page();
   await p.openChatPetPicker();
   assert.equal(navigated, '/pages/pet-space/pet-edit');
   assert.ok(p.data.inputMessage);
   console.log(
-    'PASS: unbound text/photo chat, optional binding, pet conversation transition, bound chat API, typed options, multi-select, risk mapping, photo-only and captioned messages',
+    'PASS: unbound text/photo chat, optional binding, pet conversation transition, bound chat API, typed options, multi-select, risk mapping, photo-only and captioned messages, photo follow-up display/history/routing',
   );
 })().catch((e) => {
   console.error(e);

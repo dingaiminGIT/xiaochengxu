@@ -16,9 +16,16 @@ Page({
     images: [],
     saving: false,
     draftId: '',
+    fromGuzi: false,
   },
   onLoad(query) {
-    if (query.source === 'guzi' && !query.id) {
+    const fromGuzi = query.source === 'guzi' && !query.id;
+    this.setData({
+      fromGuzi,
+      categories: fromGuzi ? categories.filter(item => item.id === 'FUNNY') : categories.slice(1),
+      category: fromGuzi ? 'FUNNY' : 'CHIN',
+    });
+    if (fromGuzi) {
       this.getOpenerEventChannel().once('guziResult', ({ imagePath, account, resultSaved }) => {
         if (account !== accountKey('guzi-share') || !imagePath || this.data.images.length) return;
         this._fromGuzi = true;
@@ -110,7 +117,7 @@ Page({
       this.setData({ images: this.data.images.filter((_, i) => i !== e.currentTarget.dataset.index) });
   },
   saveDraft() {
-    if (this.data.saving) return;
+    if (this.data.saving || this.data.fromGuzi) return;
     const d = this.data;
     if (!d.body.trim() && !d.title.trim() && !d.images.length) {
       wx.showToast({ title: '先记录一点内容吧', icon: 'none' });

@@ -8,11 +8,15 @@ function makePage(def) {
 async function run() {
   let def, confirm = false, modalCount = 0, back = 0, home = 0, alerts = 0, saveFails = false;
   const wx = {
+    getSetting: args => args.success({ authSetting: { 'scope.writePhotosAlbum': true } }),
     showModal(o) { modalCount++; if (o.success) o.success({ confirm }); },
     navigateBack() { back++; }, switchTab(o) { assert.equal(o.url, '/pages/home/index'); home++; },
     enableAlertBeforeUnload() { alerts++; }, disableAlertBeforeUnload() { alerts--; },
     saveImageToPhotosAlbum(o) { if (saveFails) o.fail({ errMsg: 'failed' }); else o.success(); },
     showToast() {},
+    env: { USER_DATA_PATH: '/user' },
+    getImageInfo(o) { o.success({ path: o.src, type: 'jpeg' }); },
+    getFileSystemManager() { return { copyFile(o) { o.success(); }, unlink() {} }; },
   };
   vm.runInNewContext(read('pages/guzi/index.js'), {
     Page: v => { def = v; }, wx, getCurrentPages: () => [1, 2], DEFAULT_PROMPT: '', PROMPT_LIMIT: 2000,
