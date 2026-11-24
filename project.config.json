@@ -6,6 +6,7 @@
       { "type": "file", "value": "static/design/home-hero.webp" },
       { "type": "file", "value": "static/assistant/welcome/hero.webp" },
       { "type": "file", "value": "static/assistant/welcome/hero.png" },
+      { "type": "file", "value": "static/assistant/welcome/hero-mobile.png" },
       { "type": "folder", "value": "output" },
       { "type": "folder", "value": "node_modules" },
       { "type": "folder", "value": "mock" },

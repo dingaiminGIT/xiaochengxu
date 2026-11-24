@@ -2,6 +2,7 @@ import { previewIngredientExample } from '../../utils/preview-ingredient-example
 import { requireSession, hasSession, api, login, errorText, downloadPetImage, mapPet } from '../../api/miniprogram';
 import { accountKey, currentPet, cachePetList } from '../../utils/pet-store';
 import { submitFood, submissionView } from '../../utils/food-submission';
+import { shareCard } from '../../utils/share';
 
 Page({
   data: {
@@ -383,7 +384,7 @@ Page({
             food.recognized_brand || food.claimed_brand,
           )}`,
         }
-      : { title: '食品资料库', path: '/pages/pet-space/hunting' };
+      : shareCard('食品资料库', '/pages/pet-space/hunting');
   },
   analyzeResult() {
     const item = this.data.selected;

@@ -1,13 +1,28 @@
+const ENTRY_SHARE_PATHS = new Set([
+  '/pages/home/index',
+  '/pages/assistant/index',
+  '/pages/guzi/index',
+  '/pages/halloween/index',
+  '/pages/pet-space/supplies',
+  '/pages/pet-space/hunting',
+]);
+
 // Always use an explicit cover: automatic screenshots can contain private records.
 export function shareCard(title, path, params = {}, image = '') {
+  const [page, existingQuery = ''] = path.split('?');
+  const hasItem = (params.id != null && params.id !== '') || /(?:^|&)id=[^&]+/.test(existingQuery);
+  const isEntryShare = ENTRY_SHARE_PATHS.has(page) && !hasItem;
+  const fallbackImage = isEntryShare
+    ? '/static/design/share-cover.jpg'
+    : '/static/design/home-hero.png';
   const query = Object.keys(params)
     .filter((key) => params[key] !== '' && params[key] != null)
     .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}`)
     .join('&');
   return {
-    title: (title || '宠析 · 记录陪伴，分享生活').slice(0, 100),
+    title: (isEntryShare ? '宠析 | 毛孩子的贴身管家' : title || '宠析 · 记录陪伴，分享生活').slice(0, 100),
     path: path + (query ? '?' + query : ''),
-    imageUrl: /^https?:\/\//.test(image) ? image : '/static/design/home-hero.png',
+    imageUrl: /^https?:\/\//.test(image) ? image : fallbackImage,
   };
 }
 

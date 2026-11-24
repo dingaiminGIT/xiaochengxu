@@ -1,4 +1,4 @@
-<view class="guzi-page {{state === 'generating' ? 'generating-page' : ''}} {{state === 'success' ? 'result-page' : ''}} {{inputFocused ? 'keyboard-open' : ''}}">
+<view class="guzi-page {{state === 'editing' ? 'editing-page' : ''}} {{state === 'generating' ? 'generating-page' : ''}} {{state === 'success' ? 'result-page' : ''}} {{inputFocused ? 'keyboard-open' : ''}}">
   <view class="guzi-header"><page-header title="生成谷子" back custom-back bind:back="leavePage" /></view>
   <view class="guzi-body">
     <block wx:if="{{state === 'editing'}}">
@@ -24,7 +24,7 @@
         <button class="icon-button replace-button" bindtap="choosePhoto" disabled="{{choosing}}" aria-label="更换照片"><image src="assets/replace.svg" /></button>
       </view>
       <view class="guzi-card prompt-card">
-        <text class="card-title">自定义描述</text>
+        <text class="card-title">风格描述</text>
         <view wx:if="{{promptStyles.length || stylesLoading || stylesError}}" class="style-tags">
           <button wx:for="{{promptStyles}}" wx:key="id" class="style-tag {{selectedStyle === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPromptStyle" aria-label="{{item.name}}，{{selectedStyle === item.id ? '已选中' : '未选中'}}">{{item.name}}</button>
           <text wx:if="{{stylesLoading}}" class="small-label">加载风格中…</text>
@@ -58,7 +58,7 @@
         <button class="{{preview === 'badge' ? 'active' : ''}}" data-mode="badge" bindtap="setPreview" aria-label="58mm 徽章，{{preview === 'badge' ? '已选中' : '未选中'}}"><image src="assets/result/award.svg" mode="aspectFit" />58mm 徽章</button>
       </view>
       <view class="result-card">
-        <view class="result-artwork {{preview === 'badge' ? 'badge-preview' : 'avatar-preview'}}">
+        <view class="result-artwork {{preview === 'badge' ? 'badge-preview' : 'avatar-preview'}}" bindtap="previewResult" role="button" aria-label="查看生成图片大图，可长按保存">
           <image class="result-image {{preview === 'badge' ? 'badge' : ''}}" src="{{resultPath}}" mode="{{preview === 'badge' ? 'aspectFill' : 'aspectFit'}}" />
           <view wx:if="{{preview === 'badge'}}" class="result-gloss"></view>
           <image class="badge-celebrate" src="assets/result/badge-spark.svg" mode="aspectFit" aria-hidden="true" />
@@ -66,6 +66,7 @@
         </view>
         <view wx:if="{{preview === 'badge'}}" class="dimension"><view></view><text>58 mm</text><view></view></view>
         <text wx:else class="avatar-dimension">1 : 1 头像</text>
+        <text class="preview-save-hint">点击查看大图 · 长按可保存</text>
       </view>
     </block>
     <block wx:elif="{{state === 'failed'}}">
@@ -79,7 +80,7 @@
     <button wx:elif="{{state === 'generating'}}" class="primary" disabled>正在生成，请稍候</button>
     <block wx:elif="{{state === 'success'}}">
       <view class="result-actions">
-        <button class="secondary" loading="{{saving}}" disabled="{{saving || sharing}}" bindtap="saveImage"><image wx:if="{{!saving}}" class="result-action-icon" src="assets/result/download.svg" mode="aspectFit" />{{isDemo ? '保存示例头像' : '保存头像'}}</button>
+        <button class="secondary" loading="{{saving}}" disabled="{{saving || sharing}}" bindtap="saveImage"><image wx:if="{{!saving}}" class="result-action-icon" src="assets/result/download.svg" mode="aspectFit" />{{isDemo ? '保存图像' : '保存图像'}}</button>
         <button class="primary" loading="{{sharing}}" disabled="{{sharing || saving}}" bindtap="showOff"><image wx:if="{{!sharing}}" class="result-action-icon" src="assets/result/wand-sparkles.svg" mode="aspectFit" />秀一下</button>
       </view>
       <button class="secondary" bindtap="recreate" disabled="{{sharing}}"><image class="result-action-icon" src="assets/result/rotate-cw.svg" mode="aspectFit" />重新创作</button>

@@ -28,7 +28,7 @@ page { background: #f8f5fc; }
 .icon-button image { width: 42rpx; height: 42rpx; }
 .replace-button { top: 20rpx; right: 22rpx; background: #eee8fc; }
 .crop-button { bottom: 16rpx; left: 50%; transform: translateX(-50%); background: rgba(39,31,51,.78); }
-.prompt-input { display: block; width: 100%; height: 300rpx; box-sizing: border-box; font-size: 27rpx; line-height: 1.65; color: #302846; }
+.prompt-input { display: block; width: 100%; height: 300rpx; box-sizing: border-box; padding: 22rpx 24rpx; border: 2rpx dashed #c9bff0; border-radius: 30rpx; font-size: 27rpx; line-height: 1.65; color: #302846; }
 .word-count { display: block; text-align: right; margin-top: 20rpx; font-size: 23rpx; color: #82758e; }
 .field-error { display: block; margin-top: 12rpx; color: #ae4c50; font-size: 24rpx; }
 .generation-label { color: #7460d9; font-size: 30rpx; font-weight: 600; text-align: center; width: 100%; }
@@ -60,6 +60,17 @@ page { background: #f8f5fc; }
 .style-tags { display: flex; flex-wrap: wrap; gap: 16rpx; margin-bottom: 24rpx; }
 .guzi-page .style-tag { padding: 12rpx 28rpx; border-radius: 999rpx; background: #f3efff; color: #82758e; font-size: 26rpx; line-height: 1.5; }
 .guzi-page .style-tag.active { background: #7460d9; color: #fff; }
+
+/* Let the editor use spare viewport height; short screens still scroll naturally. */
+.editing-page { display: flex; flex-direction: column; min-height: 100vh; padding-bottom: 0; }
+.editing-page .guzi-header { flex-shrink: 0; }
+.editing-page .guzi-body { flex: 1; display: flex; flex-direction: column; }
+.editing-page .guzi-title, .editing-page .upload-card, .editing-page .photo-card { flex-shrink: 0; }
+.editing-page .prompt-card { flex: 1; display: flex; flex-direction: column; margin-bottom: 0; }
+.editing-page .prompt-input { flex: 1; min-height: 300rpx; }
+.editing-page .card-title, .editing-page .style-tags, .editing-page .word-count, .editing-page .field-error { flex-shrink: 0; }
+.editing-page .guzi-footer { position: relative; flex-shrink: 0; }
+.editing-page.keyboard-open { padding-bottom: 40rpx; }
 
 .generating-page { display: flex; flex-direction: column; height: 100vh; min-height: 0; padding-bottom: 0; overflow: hidden; }
 .generating-page .guzi-header { flex-shrink: 0; }
@@ -100,6 +111,7 @@ page { background: #f8f5fc; }
 .result-bottom-art { position: relative; flex-shrink: 0; height: calc(78rpx + env(safe-area-inset-bottom)); min-height: 112rpx; pointer-events: none; overflow: hidden; }
 .result-waves { position: absolute; inset: 0; width: 100%; height: 100%; }
 .result-yarn { position: absolute; left: 67rpx; top: 6rpx; width: 194rpx; height: 90rpx; }
+.preview-save-hint { display: block; margin-top: 18rpx; text-align: center; font-size: 24rpx; color: #82778f; }
 @media (max-height: 700px) {
   .result-page .guzi-body { padding-top: 24rpx; }
   .result-heading { margin-bottom: 26rpx; }

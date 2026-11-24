@@ -166,6 +166,18 @@ Page({
     wx.pageScrollTo({ scrollTop: 0, duration: 0 });
   },
   setPreview(event) { this.setData({ preview: event.currentTarget.dataset.mode }); },
+  previewResult() {
+    const { state, resultPath } = this.data;
+    if (state !== 'success' || !resultPath) return;
+    wx.previewImage({
+      current: resultPath,
+      urls: [resultPath],
+      showmenu: true,
+      fail: () => {
+        if (this._alive) wx.showToast({ title: '图片预览失败，请重试', icon: 'none' });
+      },
+    });
+  },
   async showOff() {
     if (this.data.sharing || this.data.state !== 'success' || !this.data.resultPath) return;
     if (!requireSession()) return;
@@ -202,7 +214,7 @@ Page({
   openAlbumSettings(system = false) {
     return new Promise((resolve, reject) => wx.showModal({
       title: '允许保存到相册',
-      content: system ? '微信还没有系统相册权限，请前往手机设置开启。' : '请开启“保存到相册”，返回后将继续保存头像。',
+      content: system ? '微信还没有系统相册权限，请前往手机设置开启。' : '请开启“保存到相册”，返回后将继续保存图像。',
       confirmText: '去设置',
       success: choice => {
         if (!choice.confirm || !this._alive) { resolve(false); return; }

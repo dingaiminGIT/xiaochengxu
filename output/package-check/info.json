@@ -1,0 +1,83 @@
+{
+  "size": {
+    "total": 3993314,
+    "packages": [
+      {
+        "name": "TOTAL",
+        "size": 3993314
+      },
+      {
+        "name": "main",
+        "size": 1525876
+      },
+      {
+        "name": "/pages/analysis/",
+        "size": 7874
+      },
+      {
+        "name": "/pages/chat/",
+        "size": 5664
+      },
+      {
+        "name": "/pages/dataCenter/",
+        "size": 5502
+      },
+      {
+        "name": "/pages/devices/",
+        "size": 48322
+      },
+      {
+        "name": "/pages/goods/",
+        "size": 37777
+      },
+      {
+        "name": "/pages/guzi/",
+        "size": 235638
+      },
+      {
+        "name": "/pages/halloween/",
+        "size": 1737803
+      },
+      {
+        "name": "/pages/history/",
+        "size": 3102
+      },
+      {
+        "name": "/pages/login/",
+        "size": 4406
+      },
+      {
+        "name": "/pages/loginCode/",
+        "size": 1896
+      },
+      {
+        "name": "/pages/message/",
+        "size": 670
+      },
+      {
+        "name": "/pages/my/info-edit/",
+        "size": 3533
+      },
+      {
+        "name": "/pages/pet-space/",
+        "size": 347316
+      },
+      {
+        "name": "/pages/release/",
+        "size": 15230
+      },
+      {
+        "name": "/pages/search/",
+        "size": 5982
+      },
+      {
+        "name": "/pages/setting/",
+        "size": 5352
+      },
+      {
+        "name": "/pages/surrounding/",
+        "size": 1371
+      }
+    ]
+  }
+}
