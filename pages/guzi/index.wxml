@@ -30,7 +30,9 @@
           <text wx:if="{{stylesLoading}}" class="small-label">加载风格中…</text>
           <button wx:elif="{{stylesError}}" class="style-tag" bindtap="loadPromptStyles">重试加载风格</button>
         </view>
-        <textarea class="prompt-input" value="{{prompt}}" maxlength="-1" placeholder="描述你想要的头像" bindinput="onPromptInput" bindfocus="onPromptFocus" bindblur="onPromptBlur" cursor-spacing="100" show-confirm-bar="{{false}}" />
+        <view class="prompt-editor">
+          <textarea class="prompt-input" value="{{prompt}}" auto-height="{{false}}" maxlength="-1" placeholder="描述你想要的头像" bindinput="onPromptInput" bindfocus="onPromptFocus" bindblur="onPromptBlur" cursor-spacing="100" show-confirm-bar="{{false}}" />
+        </view>
         <text class="word-count">{{promptCount}} / {{promptLimit}}</text>
         <text wx:if="{{error}}" class="field-error">{{error}}</text>
       </view>
