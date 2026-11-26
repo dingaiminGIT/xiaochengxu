@@ -14,7 +14,7 @@ export function normalizePrompt(value) {
 
 // Cancel stops local upload/polling only. An accepted server task may still finish;
 // keep its identity so retries resume it instead of charging for a second image.
-export function createGeneration({ photoPath, prompt, onStage = () => {} }) {
+export function createGeneration({ photoPath, prompt, style = '', onStage = () => {} }) {
   const token = wx.getStorageSync('miniprogram_token') || '';
   const key = accountKey('guzi-generation');
   let stopped = false, timer, transport, rejectTask, settled = false;
@@ -92,7 +92,7 @@ export function createGeneration({ photoPath, prompt, onStage = () => {} }) {
         finish(new Error(item.error || '暂时无法生成，请稍后重试'));
       } else if (['pending', 'generating'].includes(item.status)) {
         if (Date.now() > deadline) { finish(new Error('等待超时，点击重试继续查看结果')); return; }
-        timer = setTimeout(poll, 1500);
+        timer = setTimeout(poll, style ? 3200 : 1500);
       } else finish(new Error('无法识别生成状态，请重试'));
     };
     const poll = () => {
@@ -117,18 +117,18 @@ export function createGeneration({ photoPath, prompt, onStage = () => {} }) {
       });
     };
     if (!token) { finish(Object.assign(new Error('请先登录'), { statusCode: 401 })); return; }
-    if (!photoPath || !String(prompt || '').trim() || Array.from(prompt).length > PROMPT_LIMIT) {
+    if (!photoPath || (!style && (!String(prompt || '').trim() || Array.from(prompt).length > PROMPT_LIMIT))) {
       finish(new Error(`请选择照片，并填写 1–${PROMPT_LIMIT} 字描述`)); return;
     }
     try { record = wx.getStorageSync(key); } catch (_) { record = null; }
-    if (!record || record.photoPath !== photoPath || record.prompt !== prompt) {
-      record = { photoPath, prompt, requestId: `guzi_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}` };
+    if (!record || record.photoPath !== photoPath || record.prompt !== prompt || (record.style || '') !== style) {
+      record = { photoPath, prompt, style, requestId: `guzi_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}_${Math.random().toString(36).slice(2)}` };
     }
     persist();
     if (record.taskId) { poll(); return; }
     transport = wx.uploadFile({
       url: endpoint, filePath: photoPath, name: 'image', timeout: 60000,
-      formData: { prompt, request_id: record.requestId },
+      formData: { ...(style ? { style } : { prompt }), request_id: record.requestId },
       header: { Authorization: `Bearer ${token}` },
       success(res) {
         if (!ensureActive()) return;

@@ -24,16 +24,28 @@
         <button class="icon-button replace-button" bindtap="choosePhoto" disabled="{{choosing}}" aria-label="更换照片"><image src="assets/replace.svg" /></button>
       </view>
       <view class="guzi-card prompt-card">
-        <text class="card-title">风格描述</text>
-        <view wx:if="{{promptStyles.length || stylesLoading || stylesError}}" class="style-tags">
-          <button wx:for="{{promptStyles}}" wx:key="id" class="style-tag {{selectedStyle === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPromptStyle" aria-label="{{item.name}}，{{selectedStyle === item.id ? '已选中' : '未选中'}}">{{item.name}}</button>
-          <text wx:if="{{stylesLoading}}" class="small-label">加载风格中…</text>
-          <button wx:elif="{{stylesError}}" class="style-tag" bindtap="loadPromptStyles">重试加载风格</button>
+        <view wx:if="{{badgeStyles.length}}" class="style-tags mode-tabs">
+          <button class="style-tag {{mode === 'prompt' ? 'active' : ''}}" data-mode="prompt" bindtap="setMode">自定义头像</button>
+          <button class="style-tag {{mode === 'badge' ? 'active' : ''}}" data-mode="badge" bindtap="setMode">徽章转绘</button>
         </view>
-        <view class="prompt-editor">
-          <textarea class="prompt-input" value="{{prompt}}" auto-height="{{false}}" maxlength="-1" placeholder="描述你想要的头像" bindinput="onPromptInput" bindfocus="onPromptFocus" bindblur="onPromptBlur" cursor-spacing="100" show-confirm-bar="{{false}}" />
+        <view wx:if="{{mode === 'badge'}}">
+          <text class="card-title">选择徽章风格</text>
+          <view class="style-tags badge-styles">
+            <button wx:for="{{badgeStyles}}" wx:key="id" class="style-tag {{badgeStyle === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectBadgeStyle">{{item.name}}</button>
+          </view>
         </view>
-        <text class="word-count">{{promptCount}} / {{promptLimit}}</text>
+        <block wx:else>
+          <text class="card-title">风格描述</text>
+          <view wx:if="{{promptStyles.length || stylesLoading || stylesError}}" class="style-tags">
+            <button wx:for="{{promptStyles}}" wx:key="id" class="style-tag {{selectedStyle === item.id ? 'active' : ''}}" data-id="{{item.id}}" bindtap="selectPromptStyle" aria-label="{{item.name}}，{{selectedStyle === item.id ? '已选中' : '未选中'}}">{{item.name}}</button>
+            <text wx:if="{{stylesLoading}}" class="small-label">加载风格中…</text>
+            <button wx:elif="{{stylesError}}" class="style-tag" bindtap="loadPromptStyles">重试加载风格</button>
+          </view>
+          <view class="prompt-editor">
+            <textarea class="prompt-input" value="{{prompt}}" auto-height="{{false}}" maxlength="-1" placeholder="描述你想要的头像" bindinput="onPromptInput" bindfocus="onPromptFocus" bindblur="onPromptBlur" cursor-spacing="100" show-confirm-bar="{{false}}" />
+          </view>
+          <text class="word-count">{{promptCount}} / {{promptLimit}}</text>
+        </block>
         <text wx:if="{{error}}" class="field-error">{{error}}</text>
       </view>
     </block>
@@ -74,11 +86,11 @@
     <block wx:elif="{{state === 'failed'}}">
       <view class="guzi-title">这次没能画出来</view>
       <view class="guzi-card error-card"><text class="card-title">生成失败</text><text>{{error}}</text></view>
-      <view class="guzi-card retained-input"><image src="{{photoPath}}" mode="aspectFill" /><text>{{prompt}}</text></view>
+      <view class="guzi-card retained-input"><image src="{{photoPath}}" mode="aspectFill" /><text>{{mode === 'badge' ? badgeName : prompt}}</text></view>
     </block>
   </view>
   <view wx:if="{{!inputFocused}}" class="guzi-footer">
-    <block wx:if="{{state === 'editing'}}"><button class="primary" disabled="{{!photoPath || !promptValid || choosing}}" bindtap="generate">{{photoPath ? '生成卡通头像' : '先上传宠物照片'}}</button></block>
+    <block wx:if="{{state === 'editing'}}"><button class="primary" disabled="{{!photoPath || (mode === 'badge' ? !badgeStyle : !promptValid) || choosing}}" bindtap="generate">{{photoPath ? (mode === 'badge' ? '生成宠物徽章' : '生成卡通头像') : '先上传宠物照片'}}</button></block>
     <button wx:elif="{{state === 'generating'}}" class="primary" disabled>正在生成，请稍候</button>
     <block wx:elif="{{state === 'success'}}">
       <view class="result-actions">

@@ -7,6 +7,7 @@ Page({
   data: {
     state: 'editing', photoPath: '', originalPath: '', prompt: DEFAULT_PROMPT,
     promptValid: true, promptCount: Array.from(DEFAULT_PROMPT).length, promptLimit: PROMPT_LIMIT,
+    mode: 'prompt', badgeStyles: [], badgeStyle: '', badgeName: '',
     promptStyles: [], selectedStyle: '', stylesLoading: false, stylesError: false,
     demoImage: DEMO_IMAGE, resultPath: '', resultSaved: false, isDemo: false, preview: 'badge',
     choosing: false, saving: false, sharing: false, inputFocused: false, error: '', generationLabel: '正在生成卡通头像…',
@@ -56,13 +57,24 @@ Page({
         const defaults = !this._promptTouched && this.data.state === 'editing'
           ? { prompt: first.prompt, promptCount: Array.from(first.prompt).length, promptValid: true, selectedStyle: first.id }
           : {};
-        this.setData({ promptStyles: result.items, ...defaults });
+        const badgeStyles = Array.isArray(result.badge_styles) ? result.badge_styles : [];
+        const badge = badgeStyles.find(item => item.id === this.data.badgeStyle) || badgeStyles[0];
+        this.setData({ promptStyles: result.items, ...defaults, badgeStyles,
+          badgeStyle: badge ? badge.id : '', badgeName: badge ? badge.name : '' });
       }
     } catch (_) {
       if (this._alive) this.setData({ stylesError: true });
     } finally {
       if (this._alive) this.setData({ stylesLoading: false });
     }
+  },
+  setMode(event) {
+    if (this.data.state !== 'editing') return;
+    this.setData({ mode: event.currentTarget.dataset.mode, error: '', inputFocused: false });
+  },
+  selectBadgeStyle(event) {
+    const style = this.data.badgeStyles.find(item => item.id === event.currentTarget.dataset.id);
+    if (style) this.setData({ badgeStyle: style.id, badgeName: style.name, error: '' });
   },
   selectPromptStyle(event) {
     const style = this.data.promptStyles.find(item => item.id === event.currentTarget.dataset.id);
@@ -131,18 +143,19 @@ Page({
   async generate() {
     if (this._task || this.data.state === 'generating' || this.data.choosing) return;
     if (!this.data.photoPath) return this.choosePhoto();
-    if (!this.data.prompt.trim()) {
+    const badge = this.data.mode === 'badge';
+    if (!badge && !this.data.prompt.trim()) {
       this.setData({ error: '请填写头像描述' });
       return;
     }
     if (!requireSession()) return;
     wx.hideKeyboard();
-    this.setData({ state: 'generating', inputFocused: false, error: '', generationLabel: '正在生成卡通头像…' });
+    this.setData({ state: 'generating', inputFocused: false, error: '', generationLabel: badge ? '正在转绘宠物徽章…' : '正在生成卡通头像…' });
     wx.pageScrollTo({ scrollTop: 0, duration: 0 });
     let task;
     try {
       task = createGeneration({
-        photoPath: this.data.photoPath, prompt: this.data.prompt.trim(),
+        photoPath: this.data.photoPath, prompt: badge ? '' : this.data.prompt.trim(), style: badge ? this.data.badgeStyle : '',
         onStage: stage => {
           if (this._alive && this.data.state === 'generating' && stage === 'preparing') {
             this.setData({ generationLabel: '图片已生成，正在准备完整预览…' });
@@ -187,7 +200,7 @@ Page({
     try {
       // Copy rather than move the temporary result: returning must preserve the preview.
       if (!this._shareImage || this._shareImage.source !== source || this._shareImage.account !== account) {
-        const path = `${wx.env.USER_DATA_PATH}/guzi-post-${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+        const path = `${wx.env.USER_DATA_PATH}/guzi-post-${Date.now()}-${Math.random().toString(36).slice(2)}.${this.data.mode === 'badge' ? 'png' : 'jpg'}`;
         await new Promise((resolve, reject) => wx.getFileSystemManager().copyFile({ srcPath: source, destPath: path, success: resolve, fail: reject }));
         this._shareImage = { source, account, path };
       }
